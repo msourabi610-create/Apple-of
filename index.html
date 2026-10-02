@@ -170,22 +170,26 @@
 
                 <!-- TAB ACCUEIL -->
                 <div id="tab-accueil" class="tab-content space-y-4">
-                    <!-- CARTE SOLDE -->
-                    <div class="bg-gradient-to-br from-sky-600 to-blue-900 p-5 rounded-3xl shadow-xl relative overflow-hidden">
-                        <div class="absolute -right-6 -bottom-6 opacity-10 text-white text-8xl">
-                            <i class="fa-brands fa-apple"></i>
-                        </div>
-                        <p class="text-xs text-sky-200 font-medium uppercase tracking-wider">Solde Total du Compte</p>
-                        <h3 class="text-3xl font-extrabold text-white mt-1" id="user-balance">700 FCFA</h3>
-                        <p class="text-[11px] text-sky-100 mt-1"><i class="fa-solid fa-gift mr-1"></i> Bonus de bienvenue inclus (700 FCFA)</p>
-
-                        <div class="grid grid-cols-2 gap-3 mt-5">
-                            <button onclick="openDepositModal()" class="bg-white text-slate-900 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-md hover:bg-slate-100 cursor-pointer">
-                                <i class="fa-solid fa-wallet text-sky-600"></i>
+                    <!-- DOUBLE CARTES SOLDES (INVESTISSEMENT & RETRAIT) -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- Solde Investissement -->
+                        <div class="bg-gradient-to-br from-indigo-700 to-slate-900 p-4 rounded-3xl shadow-xl relative overflow-hidden border border-indigo-500/30">
+                            <p class="text-[10px] text-indigo-200 font-medium uppercase tracking-wider">Solde Investissement</p>
+                            <h3 class="text-xl font-extrabold text-white mt-1" id="user-invest-balance">0 FCFA</h3>
+                            <p class="text-[9px] text-indigo-100 mt-1"><i class="fa-solid fa-lock mr-1"></i> Réservé uniquement pour les plans VIP</p>
+                            <button onclick="openDepositModal()" class="mt-3 w-full bg-white text-slate-900 font-bold py-2 rounded-xl text-xs flex items-center justify-center space-x-1 shadow-md hover:bg-slate-100 cursor-pointer">
+                                <i class="fa-solid fa-wallet text-indigo-600"></i>
                                 <span>Dépôt</span>
                             </button>
-                            <button onclick="openWithdrawModal()" class="bg-blue-950/50 border border-sky-400/30 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 hover:bg-blue-950 cursor-pointer">
-                                <i class="fa-solid fa-money-bill-transfer text-emerald-400"></i>
+                        </div>
+
+                        <!-- Solde Retrait -->
+                        <div class="bg-gradient-to-br from-emerald-700 to-slate-900 p-4 rounded-3xl shadow-xl relative overflow-hidden border border-emerald-500/30">
+                            <p class="text-[10px] text-emerald-200 font-medium uppercase tracking-wider">Solde Retrait</p>
+                            <h3 class="text-xl font-extrabold text-white mt-1" id="user-withdraw-balance">0 FCFA</h3>
+                            <p class="text-[9px] text-emerald-100 mt-1"><i class="fa-solid fa-unlock mr-1"></i> Disponible pour vos retraits Wave/MTN</p>
+                            <button onclick="openWithdrawModal()" class="mt-3 w-full bg-emerald-500 text-slate-950 font-bold py-2 rounded-xl text-xs flex items-center justify-center space-x-1 shadow-md hover:bg-emerald-400 cursor-pointer">
+                                <i class="fa-solid fa-money-bill-transfer"></i>
                                 <span>Retrait</span>
                             </button>
                         </div>
@@ -258,15 +262,15 @@
                         </div>
                         <div class="grid grid-cols-3 gap-2">
                             <div class="bg-custom-card-light p-2 rounded-xl border border-custom text-center">
-                                <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=300&q=80" alt="iPhone" class="w-full h-20 object-cover rounded-lg mb-1" onerror="this.src='https://via.placeholder.com/150/131c38/38bdf8?text=iPhone'">
+                                <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=300&q=80" alt="iPhone" class="w-full h-20 object-cover rounded-lg mb-1">
                                 <span class="text-[11px] font-bold text-white">iPhone 15 Pro</span>
                             </div>
                             <div class="bg-custom-card-light p-2 rounded-xl border border-custom text-center">
-                                <img src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=300&q=80" alt="iPhone" class="w-full h-20 object-cover rounded-lg mb-1" onerror="this.src='https://via.placeholder.com/150/131c38/38bdf8?text=iPhone'">
+                                <img src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=300&q=80" alt="iPhone" class="w-full h-20 object-cover rounded-lg mb-1">
                                 <span class="text-[11px] font-bold text-white">iPhone 16 Pro</span>
                             </div>
                             <div class="bg-custom-card-light p-2 rounded-xl border border-custom text-center">
-                                <img src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=300&q=80" alt="iPhone" class="w-full h-20 object-cover rounded-lg mb-1" onerror="this.src='https://via.placeholder.com/150/131c38/38bdf8?text=iPhone'">
+                                <img src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=300&q=80" alt="iPhone" class="w-full h-20 object-cover rounded-lg mb-1">
                                 <span class="text-[11px] font-bold text-white">iPhone 14 Pro</span>
                             </div>
                         </div>
@@ -295,7 +299,7 @@
                             <i class="fa-solid fa-users"></i>
                         </div>
                         <h3 class="font-bold text-white text-base">Programme de Parrainage</h3>
-                        <p class="text-xs text-slate-400">Invitez vos amis. Gagnez <b>100 FCFA</b> par filleul dès que celui-ci effectue son premier investissement !</p>
+                        <p class="text-xs text-slate-400">Invitez vos amis. Gagnez <b>100 FCFA</b> par filleul (versé directement dans votre solde de retrait) dès que celui-ci effectue son premier investissement !</p>
                         
                         <div class="bg-custom-card-light p-3 rounded-xl border border-custom flex items-center justify-between">
                             <span id="ref-link" class="text-xs text-sky-300 truncate mr-2">https://msourabi610-create.github.io/Apple-of/</span>
@@ -636,7 +640,8 @@
 
             currentUser = {
                 phone: fullPhone,
-                balance: 700,
+                investBalance: 0,
+                withdrawBalance: 700, // Bonus de bienvenue mis dans le solde de retrait par défaut ou selon besoin
                 wallet: null,
                 invitedBy: currentInviter || null,
                 hasInvested: false,
@@ -677,7 +682,8 @@
                 if(fullPhone === "+225 0596180495") {
                     currentUser = {
                         phone: fullPhone,
-                        balance: 50000,
+                        investBalance: 50000,
+                        withdrawBalance: 10000,
                         wallet: { op: 'WAVE', phone: fullPhone },
                         invitedBy: null,
                         hasInvested: true,
@@ -691,6 +697,12 @@
                 }
             } else {
                 currentUser = userSnap.data();
+                // Assurer la rétrocompatibilité si un ancien compte a l'ancienne variable 'balance'
+                if(currentUser.balance !== undefined && currentUser.investBalance === undefined) {
+                    currentUser.investBalance = parseInt(currentUser.balance) || 0;
+                    currentUser.withdrawBalance = 0;
+                    delete currentUser.balance;
+                }
             }
 
             startRealtimeSync(fullPhone);
@@ -709,6 +721,10 @@
             onSnapshot(doc(db, "users", phone), (docSnap) => {
                 if(docSnap.exists()) {
                     currentUser = docSnap.data();
+                    if(currentUser.balance !== undefined && currentUser.investBalance === undefined) {
+                        currentUser.investBalance = parseInt(currentUser.balance) || 0;
+                        currentUser.withdrawBalance = 0;
+                    }
                     updateDashboardUI();
                 }
             });
@@ -751,13 +767,14 @@
                 document.getElementById('admin-users-count').innerText = snapshot.size;
                 snapshot.forEach(docSnap => {
                     const u = docSnap.data();
+                    let totalVal = parseInt(u.investBalance || 0) + parseInt(u.withdrawBalance || u.balance || 0);
                     usersHtml += `
                         <div class="bg-custom-card-light p-2.5 rounded-xl border border-custom flex justify-between items-center text-xs">
                             <div>
                                 <span class="font-bold text-white"><i class="fa-solid fa-phone text-sky-400 mr-1"></i> ${u.phone}</span>
                                 <span class="block text-[10px] text-slate-400">Invité par : ${u.invitedBy || 'Aucun'}</span>
                             </div>
-                            <span class="font-extrabold text-emerald-400">${parseInt(u.balance || 0).toLocaleString()} FCFA</span>
+                            <span class="font-extrabold text-emerald-400">${totalVal.toLocaleString()} FCFA</span>
                         </div>
                     `;
                 });
@@ -838,7 +855,7 @@
             });
         }
 
-        // --- CORRECTION DU BUG DE MONTANT DE DÉPÔT ---
+        // --- VALIDATION DU DÉPÔT : AJOUTE UNIQUEMENT AU SOLDE D'INVESTISSEMENT ---
         window.adminValidateDeposit = async function(depId, userPhone, amount) {
             const cleanAmount = parseInt(amount);
             if(isNaN(cleanAmount) || cleanAmount <= 0) {
@@ -850,17 +867,16 @@
             const userSnap = await getDoc(userRef);
             if(userSnap.exists()) {
                 let uData = userSnap.data();
-                // Forçage absolu en nombre pour éviter la concaténation de texte
-                let currentBal = parseInt(uData.balance || 0);
-                uData.balance = currentBal + cleanAmount;
+                let currentInvest = parseInt(uData.investBalance || 0);
+                uData.investBalance = currentInvest + cleanAmount;
                 
                 if(!uData.transactions) uData.transactions = [];
-                uData.transactions.push({ type: 'Dépôt validé (Admin)', amount: cleanAmount, date: new Date().toLocaleDateString() });
+                uData.transactions.push({ type: 'Dépôt validé (Investissement)', amount: cleanAmount, date: new Date().toLocaleDateString() });
                 
                 await setDoc(userRef, uData);
             }
             await updateDoc(doc(db, "deposits", depId), { status: 'approved' });
-            alert("Dépôt validé avec succès ! Le compte a été crédité correctement.");
+            alert("Dépôt validé avec succès ! Ajouté au solde d'investissement.");
         };
 
         window.adminRejectDeposit = async function(depId) {
@@ -892,13 +908,14 @@
             const userSnap = await getDoc(userRef);
             if(userSnap.exists()) {
                 let uData = userSnap.data();
-                uData.balance = parseInt(uData.balance || 0) + cleanAmount;
+                // Remboursement vers le solde de retrait
+                uData.withdrawBalance = parseInt(uData.withdrawBalance || 0) + cleanAmount;
                 uData.transactions.push({ type: `Retrait rejeté (${reason || 'Non spécifié'})`, amount: cleanAmount, date: new Date().toLocaleDateString() });
                 await setDoc(userRef, uData);
             }
 
             await updateDoc(doc(db, "withdrawals", withdrawId), { status: 'rejected', reason: reason });
-            alert("Retrait rejeté. Les fonds ont été recrédités.");
+            alert("Retrait rejeté. Les fonds ont été recrédités sur le solde de retrait.");
         };
 
         window.adminValidateReferralReward = async function(refDocId, parrainPhone, filleulPhone) {
@@ -906,26 +923,30 @@
             const parrainSnap = await getDoc(parrainRef);
             if(parrainSnap.exists()) {
                 let pData = parrainSnap.data();
-                pData.balance = parseInt(pData.balance || 0) + 100;
+                pData.withdrawBalance = parseInt(pData.withdrawBalance || 0) + 100;
                 pData.transactions.push({ type: `Prime de parrainage (${filleulPhone})`, amount: 100, date: new Date().toLocaleDateString() });
                 await setDoc(parrainRef, pData);
             }
             await updateDoc(doc(db, "referrals", refDocId), { invested: true, pendingReward: false });
-            alert("Récompense de 100 FCFA versée au parrain !");
+            alert("Récompense de 100 FCFA versée au solde de retrait du parrain !");
         };
 
         window.investVip = async function(vipId) {
             const vip = vipPlans.find(v => v.id === vipId);
-            let currentBal = parseInt(currentUser.balance || 0);
-            if(currentBal < vip.price) {
-                alert("Solde insuffisant ! Effectuez un dépôt.");
+            let currentInvest = parseInt(currentUser.investBalance || 0);
+            if(currentInvest < vip.price) {
+                alert("Solde d'investissement insuffisant ! Effectuez un dépôt.");
                 openDepositModal();
                 return;
             }
 
-            currentUser.balance = currentBal - vip.price;
+            currentUser.investBalance = currentInvest - vip.price;
             currentUser.activeInvestments.push(vip);
             currentUser.transactions.push({ type: `Investissement ${vip.name}`, amount: -vip.price, date: new Date().toLocaleDateString() });
+
+            // Simulation d'ajout de gains quotidiens dans le solde de retrait (pour l'exemple)
+            currentUser.withdrawBalance = parseInt(currentUser.withdrawBalance || 0) + vip.daily;
+            currentUser.transactions.push({ type: `Revenu journalier ${vip.name}`, amount: vip.daily, date: new Date().toLocaleDateString() });
 
             if(!currentUser.hasInvested) {
                 currentUser.hasInvested = true;
@@ -942,7 +963,7 @@
             }
 
             await setDoc(doc(db, "users", currentUser.phone), currentUser);
-            alert(`Investissement VIP ${vip.id} réussi !`);
+            alert(`Investissement VIP ${vip.id} réussi ! Vos gains quotidiens ont été ajoutés à votre solde de retrait.`);
             switchTab('profil');
         };
 
@@ -1004,11 +1025,11 @@
 
         window.processWithdraw = async function() {
             const amount = parseInt(document.getElementById('withdraw-amount').value);
-            let currentBal = parseInt(currentUser.balance || 0);
+            let currentWithdraw = parseInt(currentUser.withdrawBalance || 0);
             if(!amount || amount < 1000) { alert("Minimum 1 000 FCFA."); return; }
-            if(currentBal < amount) { alert("Solde insuffisant."); return; }
+            if(currentWithdraw < amount) { alert("Solde de retrait insuffisant."); return; }
 
-            currentUser.balance = currentBal - amount;
+            currentUser.withdrawBalance = currentWithdraw - amount;
             currentUser.transactions.push({ type: 'Retrait en attente de validation', amount: -amount, date: new Date().toLocaleDateString() });
 
             await setDoc(doc(db, "users", currentUser.phone), currentUser);
@@ -1025,7 +1046,7 @@
             });
 
             closeModal('modal-withdraw');
-            alert("Demande de retrait enregistrée !");
+            alert("Demande de retrait enregistrée depuis votre solde de retrait !");
         };
 
         window.openWalletModal = function() { document.getElementById('modal-wallet').classList.remove('hidden'); };
@@ -1051,7 +1072,8 @@
         };
 
         function updateDashboardUI() {
-            document.getElementById('user-balance').innerText = parseInt(currentUser.balance || 0).toLocaleString() + " FCFA";
+            document.getElementById('user-invest-balance').innerText = parseInt(currentUser.investBalance || 0).toLocaleString() + " FCFA";
+            document.getElementById('user-withdraw-balance').innerText = parseInt(currentUser.withdrawBalance || 0).toLocaleString() + " FCFA";
 
             if(currentUser.wallet) {
                 document.getElementById('wallet-status').innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-check-circle mr-1"></i> ${currentUser.wallet.op} : ${currentUser.wallet.phone}</span>`;
