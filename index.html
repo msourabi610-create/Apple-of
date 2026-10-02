@@ -21,6 +21,18 @@
         .text-primary-custom { color: #38bdf8; }
         .bg-primary-custom { background-color: #0284c7; }
         .bg-primary-custom:hover { background-color: #0369a1; }
+        @keyframes marquee {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+        }
+        .animate-marquee {
+            display: flex;
+            flex-direction: column;
+            animation: marquee 15s linear infinite;
+        }
+        .animate-marquee:hover {
+            animation-play-state: paused;
+        }
     </style>
 </head>
 <body class="bg-custom-dark min-h-screen text-slate-100 flex flex-col items-center justify-start">
@@ -41,10 +53,16 @@
 
                 <div class="bg-custom-card p-6 rounded-3xl border border-custom space-y-4 shadow-xl">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-2">Numéro de téléphone</label>
-                        <div class="flex items-center bg-custom-card-light border border-custom rounded-xl px-3 py-3 focus-within:border-sky-500">
-                            <span class="text-slate-400 mr-2 text-sm font-medium">+225</span>
-                            <input type="tel" id="login-phone" placeholder="Ex: 0500000000" class="w-full bg-transparent text-white placeholder-slate-500 focus:outline-none text-sm">
+                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-2">Pays & Numéro de téléphone</label>
+                        <div class="grid grid-cols-3 gap-2 mb-2">
+                            <select id="login-country" class="bg-custom-card-light border border-custom rounded-xl px-2 py-3 text-white text-xs focus:outline-none focus:border-sky-500">
+                                <option value="+225">🇨🇮 +225</option>
+                                <option value="+229">🇧🇯 +229</option>
+                                <option value="+228">🇹🇬 +228</option>
+                                <option value="+226">🇧🇫 +226</option>
+                                <option value="+237">🇨🇲 +237</option>
+                            </select>
+                            <input type="tel" id="login-phone" placeholder="Numéro" class="col-span-2 bg-custom-card-light border border-custom rounded-xl px-3 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 text-sm">
                         </div>
                     </div>
 
@@ -81,8 +99,17 @@
 
                 <div class="bg-custom-card p-5 rounded-3xl border border-custom space-y-4 shadow-xl">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Numéro de téléphone</label>
-                        <input type="tel" id="reg-phone" placeholder="Votre numéro" class="w-full bg-custom-card-light border border-custom rounded-xl px-3 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 text-sm">
+                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Pays & Numéro de téléphone</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <select id="reg-country" class="bg-custom-card-light border border-custom rounded-xl px-2 py-3 text-white text-xs focus:outline-none focus:border-sky-500">
+                                <option value="+225">🇨🇮 +225</option>
+                                <option value="+229">🇧🇯 +229</option>
+                                <option value="+228">🇹🇬 +228</option>
+                                <option value="+226">🇧🇫 +226</option>
+                                <option value="+237">🇨🇲 +237</option>
+                            </select>
+                            <input type="tel" id="reg-phone" placeholder="Votre numéro" class="col-span-2 bg-custom-card-light border border-custom rounded-xl px-3 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 text-sm">
+                        </div>
                     </div>
 
                     <div>
@@ -164,7 +191,22 @@
                         </div>
                     </div>
 
-                    <!-- PANNEAU ADMINISTRATEUR (Visible uniquement si 0596180495) -->
+                    <!-- FIL D'ACTUALITÉ GLOBAL DES RETRAITS DE LA COMMUNAUTÉ -->
+                    <div class="bg-custom-card p-4 rounded-2xl border border-custom space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center">
+                                <i class="fa-solid fa-bolt text-amber-400 mr-2"></i> Retraits Récents de la Communauté
+                            </h4>
+                            <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold animate-pulse">En direct</span>
+                        </div>
+                        <div class="h-24 overflow-hidden relative bg-custom-card-light rounded-xl p-2 border border-custom">
+                            <div id="community-withdrawals-ticker" class="animate-marquee space-y-2">
+                                <!-- Injection dynamique des retraits globaux -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANNEAU ADMINISTRATEUR -->
                     <div id="admin-panel" class="hidden bg-custom-card p-4 rounded-3xl border border-sky-500/50 shadow-xl space-y-4">
                         <div class="flex items-center justify-between border-b border-custom pb-2">
                             <h4 class="font-extrabold text-sm text-sky-400 flex items-center">
@@ -189,9 +231,17 @@
                             </div>
                         </div>
 
-                        <!-- Demandes de Parrainage en attente -->
+                        <!-- Retraits en attente -->
                         <div class="space-y-2 pt-2 border-t border-custom">
-                            <h5 class="text-xs font-bold text-slate-300 uppercase">Primes Parrainage (Investis) (<span id="admin-referrals-count">0</span>)</h5>
+                            <h5 class="text-xs font-bold text-slate-300 uppercase">Validation des Retraits (<span id="admin-withdrawals-count">0</span>)</h5>
+                            <div id="admin-withdrawals-list" class="space-y-2 max-h-40 overflow-y-auto">
+                                <p class="text-xs text-slate-500 text-center py-2">Aucun retrait en attente</p>
+                            </div>
+                        </div>
+
+                        <!-- Primes Parrainage -->
+                        <div class="space-y-2 pt-2 border-t border-custom">
+                            <h5 class="text-xs font-bold text-slate-300 uppercase">Primes Parrainage (<span id="admin-referrals-count">0</span>)</h5>
                             <div id="admin-referrals-list" class="space-y-2 max-h-40 overflow-y-auto">
                                 <p class="text-xs text-slate-500 text-center py-2">Aucune prime en attente</p>
                             </div>
@@ -271,7 +321,7 @@
                             <i class="fa-solid fa-user"></i>
                         </div>
                         <div>
-                            <h3 id="profile-phone" class="font-bold text-sm text-white">0500000000</h3>
+                            <h3 id="profile-phone" class="font-bold text-sm text-white">+225 0500000000</h3>
                             <p class="text-xs text-emerald-400"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Compte Actif</p>
                         </div>
                     </div>
@@ -460,7 +510,8 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             renderVipLists();
-            // Détection du paramètre ref dans l'URL GitHub
+            listenCommunityWithdrawals();
+            
             const urlParams = new URLSearchParams(window.location.search);
             const refParam = urlParams.get('ref');
             if(refParam) {
@@ -500,6 +551,48 @@
             if(fullList) fullList.innerHTML = htmlContent;
         }
 
+        function listenCommunityWithdrawals() {
+            onSnapshot(collection(db, "community_withdrawals"), (snapshot) => {
+                let tickerHtml = '';
+                let items = [];
+                snapshot.forEach(docSnap => {
+                    items.push(docSnap.data());
+                });
+
+                items.sort((a, b) => b.timestamp - a.timestamp);
+
+                if(items.length === 0) {
+                    tickerHtml = `
+                        <div class="flex items-center justify-between text-xs text-slate-300 py-1 border-b border-custom/50">
+                            <span><i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i> <b>+225 05****42</b> (Wave)</span>
+                            <span class="font-bold text-emerald-400">+15.000 FCFA</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-slate-300 py-1 border-b border-custom/50">
+                            <span><i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i> <b>+229 07****19</b> (MTN)</span>
+                            <span class="font-bold text-emerald-400">+48.500 FCFA</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-slate-300 py-1 border-b border-custom/50">
+                            <span><i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i> <b>+228 01****88</b> (Wave)</span>
+                            <span class="font-bold text-emerald-400">+120.000 FCFA</span>
+                        </div>
+                    `;
+                } else {
+                    items.forEach(w => {
+                        let phoneClean = w.phone.replace(/[\s+]/g, '');
+                        let maskedPhone = phoneClean.length > 4 ? phoneClean.slice(0, -4).replace(/(\d{3}|\d{4})$/, '$1****') + phoneClean.slice(-4) : w.phone;
+                        tickerHtml += `
+                            <div class="flex items-center justify-between text-xs text-slate-300 py-1 border-b border-custom/50">
+                                <span><i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i> <b>${w.phone}</b> (${w.op || 'Wave'})</span>
+                                <span class="font-bold text-emerald-400">+${w.amount.toLocaleString()} FCFA</span>
+                            </div>
+                        `;
+                    });
+                }
+                const tickerEl = document.getElementById('community-withdrawals-ticker');
+                if(tickerEl) tickerEl.innerHTML = tickerHtml;
+            });
+        }
+
         window.switchPage = function(pageId) {
             document.querySelectorAll('#app-container > div').forEach(el => {
                 if(!el.id.startsWith('modal')) el.classList.add('hidden');
@@ -521,26 +614,30 @@
         };
 
         window.sendSmsCode = function() {
+            const country = document.getElementById('reg-country').value;
             const phone = document.getElementById('reg-phone').value;
-            if(!phone || phone.length < 8) { alert("Numéro invalide."); return; }
-            alert("Code SMS envoyé (Simulé : 1234)");
+            if(!phone || phone.length < 6) { alert("Numéro invalide."); return; }
+            alert("Code SMS envoyé au " + country + " " + phone + " (Simulé : 1234)");
             document.getElementById('reg-code').value = "1234";
         };
 
         window.handleRegister = async function() {
-            const phone = document.getElementById('reg-phone').value;
+            const country = document.getElementById('reg-country').value;
+            const rawPhone = document.getElementById('reg-phone').value.trim();
             const password = document.getElementById('reg-password').value;
             const code = document.getElementById('reg-code').value;
 
-            if(!phone || !password || !code) { alert("Remplissez tous les champs."); return; }
+            if(!rawPhone || !password || !code) { alert("Remplissez tous les champs."); return; }
             if(password.length < 6) { alert("6 caractères min."); return; }
 
-            const userRef = doc(db, "users", phone);
+            const fullPhone = country + " " + rawPhone;
+
+            const userRef = doc(db, "users", fullPhone);
             const userSnap = await getDoc(userRef);
             if(userSnap.exists()) { alert("Ce numéro est déjà enregistré. Connectez-vous."); return; }
 
             currentUser = {
-                phone: phone,
+                phone: fullPhone,
                 balance: 700,
                 wallet: null,
                 invitedBy: currentInviter || null,
@@ -551,37 +648,39 @@
 
             await setDoc(userRef, currentUser);
 
-            // Si parrainé, ajouter à la liste des filleuls du parrain
             if(currentInviter) {
-                const refDocId = "ref_" + currentInviter + "_" + phone;
+                const refDocId = "ref_" + currentInviter.replace(/\s+/g, '_') + "_" + fullPhone.replace(/\s+/g, '_');
                 await setDoc(doc(db, "referrals", refDocId), {
                     parrain: currentInviter,
-                    filleul: phone,
+                    filleul: fullPhone,
                     invested: false,
                     date: new Date().toLocaleDateString()
                 });
             }
 
-            startRealtimeSync(phone);
+            startRealtimeSync(fullPhone);
             alert("Inscription réussie ! 700 FCFA offerts.");
             switchPage('page-dashboard');
             switchTab('accueil');
         };
 
         window.handleLogin = async function() {
-            const phone = document.getElementById('login-phone').value;
+            const country = document.getElementById('login-country').value;
+            const rawPhone = document.getElementById('login-phone').value.trim();
             const password = document.getElementById('login-password').value;
-            if(!phone || !password) { alert("Remplissez tous les champs."); return; }
+            if(!rawPhone || !password) { alert("Remplissez tous les champs."); return; }
 
-            const userRef = doc(db, "users", phone);
+            const fullPhone = country + " " + rawPhone;
+
+            const userRef = doc(db, "users", fullPhone);
             const userSnap = await getDoc(userRef);
 
             if(!userSnap.exists()) {
-                if(phone === "0596180495") {
+                if(fullPhone === "+225 0596180495") {
                     currentUser = {
-                        phone: phone,
+                        phone: fullPhone,
                         balance: 50000,
-                        wallet: { op: 'WAVE', phone: '0596180495' },
+                        wallet: { op: 'WAVE', phone: fullPhone },
                         invitedBy: null,
                         hasInvested: true,
                         activeInvestments: [],
@@ -596,7 +695,7 @@
                 currentUser = userSnap.data();
             }
 
-            startRealtimeSync(phone);
+            startRealtimeSync(fullPhone);
             switchPage('page-dashboard');
             switchTab('accueil');
         };
@@ -616,7 +715,6 @@
                 }
             });
 
-            // Écouteur des filleuls de l'utilisateur connecté
             onSnapshot(collection(db, "referrals"), (snapshot) => {
                 let myReferralsHtml = '';
                 let count = 0;
@@ -636,12 +734,12 @@
                     }
                 });
                 if(document.getElementById('my-referrals-list')) {
-                    document.getElementById('my-referrals-list').innerHTML = myReferralsHtml || '<p class="text-xs text-slate-500 text-center py-4">Aucun filleul enregistré.</p>';
+                    document.getElementById('my-referrals-list').innerHTML = myReferralsHtml || '<p class="text-xs text-slate-500 text-center py-4">Aucun filleul enregistré pour le moment.</p>';
                     document.getElementById('referral-count-badge').innerText = count + " Filleuls";
                 }
             });
 
-            if(phone === "0596180495") {
+            if(phone === "+225 0596180495") {
                 document.getElementById('admin-panel').classList.remove('hidden');
                 initAdminPanel();
             } else {
@@ -693,7 +791,31 @@
                 document.getElementById('admin-deposits-list').innerHTML = depHtml || '<p class="text-xs text-slate-500 text-center py-2">Aucun dépôt en attente</p>';
             });
 
-            // Panneau Admin - Primes de parrainage (Filleul ayant investi)
+            onSnapshot(collection(db, "withdrawals"), (snapshot) => {
+                let wHtml = '';
+                let pendingWCount = 0;
+                snapshot.forEach(docSnap => {
+                    const w = docSnap.data();
+                    if(w.status === 'pending') {
+                        pendingWCount++;
+                        wHtml += `
+                            <div class="bg-custom-card-light p-3 rounded-xl border border-custom space-y-2 text-xs">
+                                <div class="flex justify-between">
+                                    <span class="font-bold text-white">Tél : ${w.phone} (${w.op})</span>
+                                    <span class="font-extrabold text-rose-400">-${w.amount.toLocaleString()} FCFA</span>
+                                </div>
+                                <div class="flex gap-2 pt-1">
+                                    <button onclick="adminValidateWithdrawal('${docSnap.id}', '${w.phone}', ${w.amount})" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-lg text-center cursor-pointer">Valider</button>
+                                    <button onclick="adminRejectWithdrawal('${docSnap.id}', '${w.phone}', ${w.amount})" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-1.5 rounded-lg text-center cursor-pointer">Rejeter</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                document.getElementById('admin-withdrawals-count').innerText = pendingWCount;
+                document.getElementById('admin-withdrawals-list').innerHTML = wHtml || '<p class="text-xs text-slate-500 text-center py-2">Aucun retrait en attente</p>';
+            });
+
             onSnapshot(collection(db, "referrals"), (snapshot) => {
                 let refAdminHtml = '';
                 let refCount = 0;
@@ -736,6 +858,37 @@
             alert("Dépôt rejeté.");
         };
 
+        window.adminValidateWithdrawal = async function(withdrawId, userPhone, amount) {
+            await updateDoc(doc(db, "withdrawals", withdrawId), { status: 'approved' });
+
+            const communityId = "comm_w_" + Date.now();
+            await setDoc(doc(db, "community_withdrawals", communityId), {
+                phone: userPhone,
+                amount: amount,
+                op: currentUser.wallet ? currentUser.wallet.op : 'WAVE',
+                timestamp: Date.now()
+            });
+
+            alert("Retrait validé avec succès ! Il est désormais affiché dans le flux de la communauté.");
+        };
+
+        window.adminRejectWithdrawal = async function(withdrawId, userPhone, amount) {
+            let reason = prompt("Motif du rejet du retrait :");
+            if(reason === null) return;
+
+            const userRef = doc(db, "users", userPhone);
+            const userSnap = await getDoc(userRef);
+            if(userSnap.exists()) {
+                let uData = userSnap.data();
+                uData.balance += amount;
+                uData.transactions.push({ type: `Retrait rejeté (${reason || 'Non spécifié'})`, amount: amount, date: new Date().toLocaleDateString() });
+                await setDoc(userRef, uData);
+            }
+
+            await updateDoc(doc(db, "withdrawals", withdrawId), { status: 'rejected', reason: reason });
+            alert("Retrait rejeté. Les fonds ont été recrédités sur le compte de l'utilisateur.");
+        };
+
         window.adminValidateReferralReward = async function(refDocId, parrainPhone, filleulPhone) {
             const parrainRef = doc(db, "users", parrainPhone);
             const parrainSnap = await getDoc(parrainRef);
@@ -761,11 +914,10 @@
             currentUser.activeInvestments.push(vip);
             currentUser.transactions.push({ type: `Investissement ${vip.name}`, amount: -vip.price, date: new Date().toLocaleDateString() });
 
-            // Marquer comme ayant investi pour la prime de parrainage si non fait
             if(!currentUser.hasInvested) {
                 currentUser.hasInvested = true;
                 if(currentUser.invitedBy) {
-                    const refDocId = "ref_" + currentUser.invitedBy + "_" + currentUser.phone;
+                    const refDocId = "ref_" + currentUser.invitedBy.replace(/\s+/g, '_') + "_" + currentUser.phone.replace(/\s+/g, '_');
                     await setDoc(doc(db, "referrals", refDocId), {
                         parrain: currentUser.invitedBy,
                         filleul: currentUser.phone,
@@ -777,7 +929,7 @@
             }
 
             await setDoc(doc(db, "users", currentUser.phone), currentUser);
-            alert(`Investissement VIP ${vip.id} réussi ! Un message a été envoyé à l'admin pour valider la prime de parrainage de votre parrain.`);
+            alert(`Investissement VIP ${vip.id} réussi !`);
             switchTab('profil');
         };
 
@@ -829,7 +981,7 @@
                 date: new Date().toLocaleDateString()
             });
             closeModal('modal-deposit');
-            alert("Demande de dépôt envoyée à l'administrateur. Elle sera validée sous peu.");
+            alert("Demande de dépôt envoyée à l'administrateur.");
         };
 
         window.openWithdrawModal = function() {
@@ -843,11 +995,23 @@
             if(currentUser.balance < amount) { alert("Solde insuffisant."); return; }
 
             currentUser.balance -= amount;
-            currentUser.transactions.push({ type: 'Retrait demandé', amount: -amount, date: new Date().toLocaleDateString() });
+            currentUser.transactions.push({ type: 'Retrait en attente de validation', amount: -amount, date: new Date().toLocaleDateString() });
 
             await setDoc(doc(db, "users", currentUser.phone), currentUser);
+
+            const withdrawId = "w_" + Date.now();
+            await setDoc(doc(db, "withdrawals", withdrawId), {
+                id: withdrawId,
+                phone: currentUser.phone,
+                amount: amount,
+                op: currentUser.wallet ? currentUser.wallet.op : 'WAVE',
+                status: 'pending',
+                timestamp: Date.now(),
+                date: new Date().toLocaleDateString()
+            });
+
             closeModal('modal-withdraw');
-            alert("Demande de retrait enregistrée.");
+            alert("Demande de retrait enregistrée et transmise à l'administrateur !");
         };
 
         window.openWalletModal = function() { document.getElementById('modal-wallet').classList.remove('hidden'); };
@@ -855,7 +1019,7 @@
         window.saveWallet = async function() {
             const op = document.getElementById('wallet-op').value;
             const phone = document.getElementById('wallet-phone').value;
-            if(!phone || phone.length < 8) { alert("Numéro valide requis."); return; }
+            if(!phone || phone.length < 6) { alert("Numéro valide requis."); return; }
 
             currentUser.wallet = { op, phone };
             await setDoc(doc(db, "users", currentUser.phone), currentUser);
@@ -867,7 +1031,7 @@
         window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); };
 
         window.copyRefLink = function() {
-            const link = "https://msourabi610-create.github.io/Apple-of/?ref=" + currentUser.phone;
+            const link = "https://msourabi610-create.github.io/Apple-of/?ref=" + encodeURIComponent(currentUser.phone);
             navigator.clipboard.writeText(link);
             alert("Votre lien de parrainage personnel a été copié :\n" + link);
         };
