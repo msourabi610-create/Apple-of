@@ -21,6 +21,7 @@
         .text-primary-custom { color: #38bdf8; }
         .bg-primary-custom { background-color: #0284c7; }
         .bg-primary-custom:hover { background-color: #0369a1; }
+        .operator-selected { border-color: #38bdf8 !important; background-color: rgba(56, 189, 248, 0.1); }
     </style>
 </head>
 <body class="bg-custom-dark min-h-screen text-slate-100 flex flex-col items-center justify-start">
@@ -333,6 +334,7 @@
                     <h3 class="font-extrabold text-sm text-white">Dépôt (Min. 3.000 FCFA)</h3>
                     <button onclick="closeModal('modal-deposit')" class="text-slate-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
+                <!-- Étape 1 : Saisir le montant -->
                 <div id="dep-step-1" class="space-y-3">
                     <div>
                         <label class="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Montant (FCFA)</label>
@@ -340,27 +342,30 @@
                     </div>
                     <button onclick="goToDepStep2()" class="w-full bg-primary-custom text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer">Continuer</button>
                 </div>
+                <!-- Étape 2 : Choix de l'opérateur Wave / MTN -->
                 <div id="dep-step-2" class="hidden space-y-3">
-                    <p class="text-xs text-slate-300">Opérateur :</p>
+                    <p class="text-xs text-slate-300 font-semibold">Choisir l'opérateur :</p>
                     <div class="grid grid-cols-2 gap-3">
-                        <button onclick="selectOperator('WAVE')" id="op-wave" class="bg-custom-card-light border border-custom p-3 rounded-xl text-center cursor-pointer">
+                        <button onclick="selectOperator('WAVE')" id="op-wave" class="operator-btn bg-custom-card-light border border-custom p-3 rounded-xl text-center cursor-pointer transition">
                             <i class="fa-solid fa-water text-sky-400 text-xl mb-1"></i>
                             <div class="text-xs font-bold text-white">WAVE</div>
                         </button>
-                        <button onclick="selectOperator('MTN')" id="op-mtn" class="bg-custom-card-light border border-custom p-3 rounded-xl text-center cursor-pointer">
+                        <button onclick="selectOperator('MTN')" id="op-mtn" class="operator-btn bg-custom-card-light border border-custom p-3 rounded-xl text-center cursor-pointer transition">
                             <i class="fa-solid fa-sim-card text-amber-400 text-xl mb-1"></i>
                             <div class="text-xs font-bold text-white">MTN</div>
                         </button>
                     </div>
                     <button onclick="goToDepStep3()" class="w-full bg-primary-custom text-white font-bold py-2.5 rounded-xl text-xs mt-2 cursor-pointer">Payer</button>
                 </div>
+                <!-- Étape 3 : Consignes de paiement -->
                 <div id="dep-step-3" class="hidden space-y-3 text-center">
                     <div class="bg-custom-card-light p-3 rounded-xl border border-custom space-y-2">
-                        <p class="text-xs text-slate-300">Envoyer <span id="dep-final-amount" class="font-bold text-sky-400">0</span> FCFA au :</p>
+                        <p class="text-xs text-slate-300">Envoyer <span id="dep-final-amount" class="font-bold text-sky-400">0</span> FCFA via <span id="dep-selected-op" class="font-bold text-white">WAVE</span> au :</p>
                         <div class="flex items-center justify-between bg-custom-dark p-2 rounded-lg border border-custom">
                             <span class="font-mono font-bold text-sm text-white">0596180495</span>
                             <button onclick="copyAdminNumber()" class="text-xs text-sky-400 font-bold bg-sky-500/10 px-2 py-1 rounded cursor-pointer">Copier</button>
                         </div>
+                        <a id="wave-link" href="https://pay.wave.com/" target="_blank" class="hidden block bg-sky-500 text-white font-bold text-xs py-2 rounded-lg mt-2">Ouvrir l'application Wave</a>
                     </div>
                     <button onclick="submitDepositRequest()" class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer">J'ai payé, valider</button>
                 </div>
@@ -414,7 +419,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyASjjIwvXQnGlOyXr9ajaIIIeq0Kkb0-Ns",
@@ -590,11 +595,22 @@
                     const d = docSnap.data();
                     if(d.status === 'pending') {
                         pending++;
-                        depHtml += `<div class="bg-custom-card-light p-2 rounded-xl text-xs text-white flex justify-between"><span>${d.phone} (${d.amount}F)</span><button onclick="adminValidateDeposit('${docSnap.id}','${d.phone}',${d.amount})" class="bg-emerald-600 px-2 py-1 rounded">Valider</button></div>`;
+                        depHtml += `
+                            <div class="bg-custom-card-light p-2.5 rounded-xl text-xs text-white space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold text-sky-300">${d.phone}</span>
+                                    <span class="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-bold">${d.amount} F</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="adminValidateDeposit('${docSnap.id}','${d.phone}',${d.amount})" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-1.5 rounded-lg font-bold cursor-pointer">Valider</button>
+                                    <button onclick="adminRejectDeposit('${docSnap.id}')" class="flex-1 bg-rose-600 hover:bg-rose-500 py-1.5 rounded-lg font-bold cursor-pointer">Refuser</button>
+                                </div>
+                            </div>
+                        `;
                     }
                 });
                 document.getElementById('admin-deposits-count').innerText = pending;
-                document.getElementById('admin-deposits-list').innerHTML = depHtml || 'Aucun';
+                document.getElementById('admin-deposits-list').innerHTML = depHtml || '<p class="text-xs text-slate-500 text-center py-2">Aucun dépôt en attente</p>';
             });
         }
 
@@ -608,7 +624,12 @@
                 await setDoc(ref, u);
             }
             await updateDoc(doc(db, "deposits", id), { status: 'approved' });
-            alert("Validé !");
+            alert("Dépôt validé avec succès !");
+        };
+
+        window.adminRejectDeposit = async function(id) {
+            await updateDoc(doc(db, "deposits", id), { status: 'rejected' });
+            alert("Dépôt refusé.");
         };
 
         window.investVip = async function(vipId) {
@@ -622,40 +643,100 @@
             switchTab('profil');
         };
 
-        window.openDepositModal = function() { document.getElementById('modal-deposit').classList.remove('hidden'); document.getElementById('dep-step-1').classList.remove('hidden'); document.getElementById('dep-step-2').classList.add('hidden'); document.getElementById('dep-step-3').classList.add('hidden'); };
-        window.goToDepStep2 = function() { tempDepositAmount = parseInt(document.getElementById('dep-amount').value); if(!tempDepositAmount) return; document.getElementById('dep-step-1').classList.add('hidden'); document.getElementById('dep-step-2').classList.remove('hidden'); };
-        window.selectOperator = function(op) { selectedOp = op; };
-        window.goToDepStep3 = function() { document.getElementById('dep-final-amount').innerText = tempDepositAmount; document.getElementById('dep-step-2').classList.add('hidden'); document.getElementById('dep-step-3').classList.remove('hidden'); };
-        window.copyAdminNumber = function() { navigator.clipboard.writeText("0596180495"); alert("Copié !"); };
+        window.openDepositModal = function() { 
+            document.getElementById('modal-deposit').classList.remove('hidden'); 
+            document.getElementById('dep-step-1').classList.remove('hidden'); 
+            document.getElementById('dep-step-2').classList.add('hidden'); 
+            document.getElementById('dep-step-3').classList.add('hidden'); 
+        };
+
+        window.goToDepStep2 = function() { 
+            tempDepositAmount = parseInt(document.getElementById('dep-amount').value); 
+            if(!tempDepositAmount || tempDepositAmount < 3000) { alert("Le montant minimum est de 3 000 FCFA."); return; }
+            document.getElementById('dep-step-1').classList.add('hidden'); 
+            document.getElementById('dep-step-2').classList.remove('hidden'); 
+            selectOperator('WAVE'); // Sélection par défaut
+        };
+
+        window.selectOperator = function(op) { 
+            selectedOp = op; 
+            document.querySelectorAll('.operator-btn').forEach(b => b.classList.remove('operator-selected'));
+            if(op === 'WAVE') {
+                document.getElementById('op-wave').classList.add('operator-selected');
+            } else {
+                document.getElementById('op-mtn').classList.add('operator-selected');
+            }
+        };
+
+        window.goToDepStep3 = function() { 
+            document.getElementById('dep-final-amount').innerText = tempDepositAmount.toLocaleString(); 
+            document.getElementById('dep-selected-op').innerText = selectedOp;
+            
+            const waveLinkBtn = document.getElementById('wave-link');
+            if(selectedOp === 'WAVE') {
+                waveLinkBtn.classList.remove('hidden');
+            } else {
+                waveLinkBtn.classList.add('hidden');
+            }
+
+            document.getElementById('dep-step-2').classList.add('hidden'); 
+            document.getElementById('dep-step-3').classList.remove('hidden'); 
+        };
+
+        window.copyAdminNumber = function() { 
+            navigator.clipboard.writeText("0596180495"); 
+            alert("Numéro copié !"); 
+        };
+
         window.submitDepositRequest = async function() {
             const id = "dep_" + Date.now();
-            await setDoc(doc(db, "deposits", id), { id, phone: currentUser.phone, amount: tempDepositAmount, status: 'pending' });
-            closeModal('modal-deposit'); alert("Demande envoyée.");
+            await setDoc(doc(db, "deposits", id), { id, phone: currentUser.phone, amount: tempDepositAmount, operator: selectedOp, status: 'pending' });
+            closeModal('modal-deposit'); 
+            alert("Demande de dépôt enregistrée. En attente de validation par l'administrateur.");
         };
 
         window.openWithdrawModal = function() { if(!currentUser.wallet) { openWalletModal(); return; } document.getElementById('modal-withdraw').classList.remove('hidden'); };
         window.processWithdraw = async function() {
             const amt = parseInt(document.getElementById('withdraw-amount').value);
-            if(currentUser.balance < amt) { alert("Insuffisant"); return; }
+            if(!amt || amt < 1000) { alert("Montant minimum de retrait : 1 000 FCFA"); return; }
+            if(currentUser.balance < amt) { alert("Solde insuffisant"); return; }
             currentUser.balance -= amt;
             currentUser.transactions.push({ type: 'Retrait', amount: -amt, date: new Date().toLocaleDateString() });
             await setDoc(doc(db, "users", currentUser.phone), currentUser);
-            closeModal('modal-withdraw'); alert("Retrait demandé.");
+            closeModal('modal-withdraw'); 
+            alert("Retrait demandé avec succès.");
         };
 
         window.openWalletModal = function() { document.getElementById('modal-wallet').classList.remove('hidden'); };
         window.saveWallet = async function() {
-            currentUser.wallet = { op: document.getElementById('wallet-op').value, phone: document.getElementById('wallet-phone').value };
+            const wPhone = document.getElementById('wallet-phone').value;
+            if(!wPhone) { alert("Veuillez entrer un numéro valide."); return; }
+            currentUser.wallet = { op: document.getElementById('wallet-op').value, phone: wPhone };
             await setDoc(doc(db, "users", currentUser.phone), currentUser);
-            closeModal('modal-wallet'); alert("Enregistré !");
+            closeModal('modal-wallet'); 
+            alert("Portefeuille enregistré avec succès !");
         };
 
         window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); };
-        window.copyRefLink = function() { navigator.clipboard.writeText("https://appleof.net/ref"); alert("Copié !"); };
+        window.copyRefLink = function() { navigator.clipboard.writeText("https://appleof.net/ref"); alert("Lien de parrainage copié !"); };
 
         function updateDashboardUI() {
             document.getElementById('user-balance').innerText = currentUser.balance.toLocaleString() + " FCFA";
             if(currentUser.wallet) document.getElementById('wallet-status').innerText = `${currentUser.wallet.op} : ${currentUser.wallet.phone}`;
+            
+            let txHtml = '';
+            if(currentUser.transactions && currentUser.transactions.length > 0) {
+                currentUser.transactions.slice().reverse().forEach(tx => {
+                    const isPositive = tx.amount > 0;
+                    txHtml += `
+                        <div class="bg-custom-card-light p-2.5 rounded-xl flex justify-between items-center text-xs">
+                            <span class="text-slate-300">${tx.type} <span class="text-[10px] text-slate-500">(${tx.date})</span></span>
+                            <span class="font-bold ${isPositive ? 'text-emerald-400' : 'text-rose-400'}">${isPositive ? '+' : ''}${tx.amount.toLocaleString()} F</span>
+                        </div>
+                    `;
+                });
+                document.getElementById('transaction-history').innerHTML = txHtml;
+            }
         }
     </script>
 </body>
