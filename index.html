@@ -860,10 +860,11 @@
             });
         }
 
+        // --- CORRECTION DU BUG DE MONTANT DE DÉPÔT ---
         window.adminValidateDeposit = async function(depId, userPhone, amount) {
             const cleanAmount = parseInt(amount);
             if(isNaN(cleanAmount) || cleanAmount <= 0) {
-                alert("Erreur : Montant invalide !");
+                alert("Erreur : Montant de dépôt invalide !");
                 return;
             }
 
@@ -871,16 +872,24 @@
             const userSnap = await getDoc(userRef);
             if(userSnap.exists()) {
                 let uData = userSnap.data();
+                
+                // Récupération sécurisée et stricte de l'ancien solde (conversion en nombre)
                 let currentInvest = parseInt(uData.investBalance || 0);
+                if(isNaN(currentInvest)) currentInvest = 0;
+
+                // Addition exacte : Ancien solde + montant exact du dépôt validé
                 uData.investBalance = currentInvest + cleanAmount;
                 
                 if(!uData.transactions) uData.transactions = [];
                 uData.transactions.push({ type: 'Dépôt validé (Investissement)', amount: cleanAmount, date: new Date().toLocaleDateString() });
                 
-                await setDoc(userRef, uData);
+                // Sauvegarde propre avec setDoc (merge: true pour ne pas écraser le reste)
+                await setDoc(userRef, uData, { merge: true });
             }
+            
+            // Marquer le dépôt comme approuvé
             await updateDoc(doc(db, "deposits", depId), { status: 'approved' });
-            alert("Dépôt validé avec succès ! Ajouté au solde d'investissement.");
+            alert(`Dépôt de ${cleanAmount.toLocaleString()} FCFA validé avec succès pour ${userPhone} !`);
         };
 
         window.adminRejectDeposit = async function(depId) {
@@ -914,7 +923,7 @@
                 let uData = userSnap.data();
                 uData.withdrawBalance = parseInt(uData.withdrawBalance || 0) + cleanAmount;
                 uData.transactions.push({ type: `Retrait rejeté (${reason || 'Non spécifié'})`, amount: cleanAmount, date: new Date().toLocaleDateString() });
-                await setDoc(userRef, uData);
+                await setDoc(userRef, uData, { merge: true });
             }
 
             await updateDoc(doc(db, "withdrawals", withdrawId), { status: 'rejected', reason: reason });
@@ -928,13 +937,12 @@
                 let pData = parrainSnap.data();
                 pData.withdrawBalance = parseInt(pData.withdrawBalance || 0) + 100;
                 pData.transactions.push({ type: `Prime de parrainage (${filleulPhone})`, amount: 100, date: new Date().toLocaleDateString() });
-                await setDoc(parrainRef, pData);
+                await setDoc(parrainRef, pData, { merge: true });
             }
             await updateDoc(doc(db, "referrals", refDocId), { invested: true, pendingReward: false });
             alert("Récompense de 100 FCFA versée au solde de retrait du parrain !");
         };
 
-        // --- CORRECTION DU BUG D'INVESTISSEMENT ---
         window.investVip = async function(vipId) {
             const vip = vipPlans.find(v => v.id === vipId);
             let currentInvest = parseInt(currentUser.investBalance || 0);
@@ -944,10 +952,8 @@
                 return;
             }
 
-            // Déduction du montant de l'investissement
             currentUser.investBalance = currentInvest - vip.price;
             
-            // Initialisation et ajout sécurisé du plan VIP dans les investissements actifs du client
             if(!currentUser.activeInvestments) {
                 currentUser.activeInvestments = [];
             }
@@ -958,7 +964,6 @@
             }
             currentUser.transactions.push({ type: `Investissement ${vip.name}`, amount: -vip.price, date: new Date().toLocaleDateString() });
 
-            // Ajout du revenu journalier au solde de retrait
             currentUser.withdrawBalance = parseInt(currentUser.withdrawBalance || 0) + vip.daily;
             currentUser.transactions.push({ type: `Revenu journalier ${vip.name}`, amount: vip.daily, date: new Date().toLocaleDateString() });
 
@@ -976,8 +981,7 @@
                 }
             }
 
-            // Sauvegarde de l'objet complet mis à jour dans Firestore pour la persistance
-            await setDoc(doc(db, "users", currentUser.phone), currentUser);
+            await setDoc(doc(db, "users", currentUser.phone), currentUser, { merge: true });
             
             alert(`Investissement VIP ${vip.id} réussi ! Vos gains quotidiens ont été ajoutés à votre solde de retrait.`);
             switchTab('profil');
@@ -1048,7 +1052,7 @@
             currentUser.withdrawBalance = currentWithdraw - amount;
             currentUser.transactions.push({ type: 'Retrait en attente de validation', amount: -amount, date: new Date().toLocaleDateString() });
 
-            await setDoc(doc(db, "users", currentUser.phone), currentUser);
+            await setDoc(doc(db, "users", currentUser.phone), currentUser, { merge: true });
 
             const withdrawId = "w_" + Date.now();
             await setDoc(doc(db, "withdrawals", withdrawId), {
@@ -1073,7 +1077,7 @@
             if(!phone || phone.length < 6) { alert("Numéro valide requis."); return; }
 
             currentUser.wallet = { op, phone };
-            await setDoc(doc(db, "users", currentUser.phone), currentUser);
+            await setDoc(doc(db, "users", currentUser.phone), currentUser, { merge: true });
             document.getElementById('wallet-status').innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-check-circle mr-1"></i> ${op} : ${phone}</span>`;
             closeModal('modal-wallet');
             alert("Portefeuille enregistré !");
