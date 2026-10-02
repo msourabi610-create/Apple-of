@@ -578,12 +578,10 @@
                     `;
                 } else {
                     items.forEach(w => {
-                        let phoneClean = w.phone.replace(/[\s+]/g, '');
-                        let maskedPhone = phoneClean.length > 4 ? phoneClean.slice(0, -4).replace(/(\d{3}|\d{4})$/, '$1****') + phoneClean.slice(-4) : w.phone;
                         tickerHtml += `
                             <div class="flex items-center justify-between text-xs text-slate-300 py-1 border-b border-custom/50">
                                 <span><i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i> <b>${w.phone}</b> (${w.op || 'Wave'})</span>
-                                <span class="font-bold text-emerald-400">+${w.amount.toLocaleString()} FCFA</span>
+                                <span class="font-bold text-emerald-400">+${parseInt(w.amount || 0).toLocaleString()} FCFA</span>
                             </div>
                         `;
                     });
@@ -759,7 +757,7 @@
                                 <span class="font-bold text-white"><i class="fa-solid fa-phone text-sky-400 mr-1"></i> ${u.phone}</span>
                                 <span class="block text-[10px] text-slate-400">Invité par : ${u.invitedBy || 'Aucun'}</span>
                             </div>
-                            <span class="font-extrabold text-emerald-400">${u.balance.toLocaleString()} FCFA</span>
+                            <span class="font-extrabold text-emerald-400">${parseInt(u.balance || 0).toLocaleString()} FCFA</span>
                         </div>
                     `;
                 });
@@ -777,10 +775,10 @@
                             <div class="bg-custom-card-light p-3 rounded-xl border border-custom space-y-2 text-xs">
                                 <div class="flex justify-between">
                                     <span class="font-bold text-white">Tél : ${d.phone}</span>
-                                    <span class="font-extrabold text-sky-400">+${d.amount.toLocaleString()} FCFA</span>
+                                    <span class="font-extrabold text-sky-400">+${parseInt(d.amount || 0).toLocaleString()} FCFA</span>
                                 </div>
                                 <div class="flex gap-2 pt-1">
-                                    <button onclick="adminValidateDeposit('${docSnap.id}', '${d.phone}', ${d.amount})" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-lg text-center cursor-pointer">Valider</button>
+                                    <button onclick="adminValidateDeposit('${docSnap.id}', '${d.phone}', ${parseInt(d.amount || 0)})" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-lg text-center cursor-pointer">Valider</button>
                                     <button onclick="adminRejectDeposit('${docSnap.id}')" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-1.5 rounded-lg text-center cursor-pointer">Rejeter</button>
                                 </div>
                             </div>
@@ -802,11 +800,11 @@
                             <div class="bg-custom-card-light p-3 rounded-xl border border-custom space-y-2 text-xs">
                                 <div class="flex justify-between">
                                     <span class="font-bold text-white">Tél : ${w.phone} (${w.op})</span>
-                                    <span class="font-extrabold text-rose-400">-${w.amount.toLocaleString()} FCFA</span>
+                                    <span class="font-extrabold text-rose-400">-${parseInt(w.amount || 0).toLocaleString()} FCFA</span>
                                 </div>
                                 <div class="flex gap-2 pt-1">
-                                    <button onclick="adminValidateWithdrawal('${docSnap.id}', '${w.phone}', ${w.amount})" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-lg text-center cursor-pointer">Valider</button>
-                                    <button onclick="adminRejectWithdrawal('${docSnap.id}', '${w.phone}', ${w.amount})" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-1.5 rounded-lg text-center cursor-pointer">Rejeter</button>
+                                    <button onclick="adminValidateWithdrawal('${docSnap.id}', '${w.phone}', ${parseInt(w.amount || 0)})" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-lg text-center cursor-pointer">Valider</button>
+                                    <button onclick="adminRejectWithdrawal('${docSnap.id}', '${w.phone}', ${parseInt(w.amount || 0)})" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-1.5 rounded-lg text-center cursor-pointer">Rejeter</button>
                                 </div>
                             </div>
                         `;
@@ -840,17 +838,29 @@
             });
         }
 
+        // --- CORRECTION DU BUG DE MONTANT DE DÉPÔT ---
         window.adminValidateDeposit = async function(depId, userPhone, amount) {
+            const cleanAmount = parseInt(amount);
+            if(isNaN(cleanAmount) || cleanAmount <= 0) {
+                alert("Erreur : Montant invalide !");
+                return;
+            }
+
             const userRef = doc(db, "users", userPhone);
             const userSnap = await getDoc(userRef);
             if(userSnap.exists()) {
                 let uData = userSnap.data();
-                uData.balance += amount;
-                uData.transactions.push({ type: 'Dépôt validé (Admin)', amount: amount, date: new Date().toLocaleDateString() });
+                // Forçage absolu en nombre pour éviter la concaténation de texte
+                let currentBal = parseInt(uData.balance || 0);
+                uData.balance = currentBal + cleanAmount;
+                
+                if(!uData.transactions) uData.transactions = [];
+                uData.transactions.push({ type: 'Dépôt validé (Admin)', amount: cleanAmount, date: new Date().toLocaleDateString() });
+                
                 await setDoc(userRef, uData);
             }
             await updateDoc(doc(db, "deposits", depId), { status: 'approved' });
-            alert("Dépôt validé ! Le compte a été crédité.");
+            alert("Dépôt validé avec succès ! Le compte a été crédité correctement.");
         };
 
         window.adminRejectDeposit = async function(depId) {
@@ -859,20 +869,22 @@
         };
 
         window.adminValidateWithdrawal = async function(withdrawId, userPhone, amount) {
+            const cleanAmount = parseInt(amount);
             await updateDoc(doc(db, "withdrawals", withdrawId), { status: 'approved' });
 
             const communityId = "comm_w_" + Date.now();
             await setDoc(doc(db, "community_withdrawals", communityId), {
                 phone: userPhone,
-                amount: amount,
+                amount: cleanAmount,
                 op: currentUser.wallet ? currentUser.wallet.op : 'WAVE',
                 timestamp: Date.now()
             });
 
-            alert("Retrait validé avec succès ! Il est désormais affiché dans le flux de la communauté.");
+            alert("Retrait validé avec succès !");
         };
 
         window.adminRejectWithdrawal = async function(withdrawId, userPhone, amount) {
+            const cleanAmount = parseInt(amount);
             let reason = prompt("Motif du rejet du retrait :");
             if(reason === null) return;
 
@@ -880,13 +892,13 @@
             const userSnap = await getDoc(userRef);
             if(userSnap.exists()) {
                 let uData = userSnap.data();
-                uData.balance += amount;
-                uData.transactions.push({ type: `Retrait rejeté (${reason || 'Non spécifié'})`, amount: amount, date: new Date().toLocaleDateString() });
+                uData.balance = parseInt(uData.balance || 0) + cleanAmount;
+                uData.transactions.push({ type: `Retrait rejeté (${reason || 'Non spécifié'})`, amount: cleanAmount, date: new Date().toLocaleDateString() });
                 await setDoc(userRef, uData);
             }
 
             await updateDoc(doc(db, "withdrawals", withdrawId), { status: 'rejected', reason: reason });
-            alert("Retrait rejeté. Les fonds ont été recrédités sur le compte de l'utilisateur.");
+            alert("Retrait rejeté. Les fonds ont été recrédités.");
         };
 
         window.adminValidateReferralReward = async function(refDocId, parrainPhone, filleulPhone) {
@@ -894,23 +906,24 @@
             const parrainSnap = await getDoc(parrainRef);
             if(parrainSnap.exists()) {
                 let pData = parrainSnap.data();
-                pData.balance += 100;
+                pData.balance = parseInt(pData.balance || 0) + 100;
                 pData.transactions.push({ type: `Prime de parrainage (${filleulPhone})`, amount: 100, date: new Date().toLocaleDateString() });
                 await setDoc(parrainRef, pData);
             }
             await updateDoc(doc(db, "referrals", refDocId), { invested: true, pendingReward: false });
-            alert("Récompense de 100 FCFA versée au parrain avec succès !");
+            alert("Récompense de 100 FCFA versée au parrain !");
         };
 
         window.investVip = async function(vipId) {
             const vip = vipPlans.find(v => v.id === vipId);
-            if(currentUser.balance < vip.price) {
+            let currentBal = parseInt(currentUser.balance || 0);
+            if(currentBal < vip.price) {
                 alert("Solde insuffisant ! Effectuez un dépôt.");
                 openDepositModal();
                 return;
             }
 
-            currentUser.balance -= vip.price;
+            currentUser.balance = currentBal - vip.price;
             currentUser.activeInvestments.push(vip);
             currentUser.transactions.push({ type: `Investissement ${vip.name}`, amount: -vip.price, date: new Date().toLocaleDateString() });
 
@@ -975,7 +988,7 @@
             await setDoc(doc(db, "deposits", depId), {
                 id: depId,
                 phone: currentUser.phone,
-                amount: tempDepositAmount,
+                amount: parseInt(tempDepositAmount),
                 operator: selectedOp,
                 status: 'pending',
                 date: new Date().toLocaleDateString()
@@ -991,10 +1004,11 @@
 
         window.processWithdraw = async function() {
             const amount = parseInt(document.getElementById('withdraw-amount').value);
+            let currentBal = parseInt(currentUser.balance || 0);
             if(!amount || amount < 1000) { alert("Minimum 1 000 FCFA."); return; }
-            if(currentUser.balance < amount) { alert("Solde insuffisant."); return; }
+            if(currentBal < amount) { alert("Solde insuffisant."); return; }
 
-            currentUser.balance -= amount;
+            currentUser.balance = currentBal - amount;
             currentUser.transactions.push({ type: 'Retrait en attente de validation', amount: -amount, date: new Date().toLocaleDateString() });
 
             await setDoc(doc(db, "users", currentUser.phone), currentUser);
@@ -1011,7 +1025,7 @@
             });
 
             closeModal('modal-withdraw');
-            alert("Demande de retrait enregistrée et transmise à l'administrateur !");
+            alert("Demande de retrait enregistrée !");
         };
 
         window.openWalletModal = function() { document.getElementById('modal-wallet').classList.remove('hidden'); };
@@ -1037,7 +1051,7 @@
         };
 
         function updateDashboardUI() {
-            document.getElementById('user-balance').innerText = currentUser.balance.toLocaleString() + " FCFA";
+            document.getElementById('user-balance').innerText = parseInt(currentUser.balance || 0).toLocaleString() + " FCFA";
 
             if(currentUser.wallet) {
                 document.getElementById('wallet-status').innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-check-circle mr-1"></i> ${currentUser.wallet.op} : ${currentUser.wallet.phone}</span>`;
@@ -1047,11 +1061,12 @@
             if(currentUser.transactions && currentUser.transactions.length > 0) {
                 let hHtml = '';
                 currentUser.transactions.forEach(tx => {
-                    const isPos = tx.amount > 0;
+                    const amt = parseInt(tx.amount || 0);
+                    const isPos = amt > 0;
                     hHtml += `
                         <div class="bg-custom-card-light p-2.5 rounded-xl border border-custom flex justify-between items-center text-xs">
                             <div><span class="font-bold text-white">${tx.type}</span><span class="block text-[10px] text-slate-400">${tx.date}</span></div>
-                            <span class="font-extrabold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${isPos ? '+' : ''}${tx.amount.toLocaleString()} FCFA</span>
+                            <span class="font-extrabold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${isPos ? '+' : ''}${amt.toLocaleString()} FCFA</span>
                         </div>
                     `;
                 });
@@ -1068,7 +1083,7 @@
                             <div class="flex-1 min-w-0">
                                 <span class="bg-primary-custom text-white font-bold text-[10px] px-2 py-0.5 rounded">VIP ${inv.id}</span>
                                 <p class="text-xs text-white font-semibold truncate mt-0.5">${inv.name}</p>
-                                <p class="text-xs text-emerald-400 font-bold">+${inv.daily.toLocaleString()} FCFA / jour</p>
+                                <p class="text-xs text-emerald-400 font-bold">+${parseInt(inv.daily || 0).toLocaleString()} FCFA / jour</p>
                             </div>
                         </div>
                     `;
