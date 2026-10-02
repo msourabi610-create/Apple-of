@@ -21,7 +21,6 @@
         .text-primary-custom { color: #38bdf8; }
         .bg-primary-custom { background-color: #0284c7; }
         .bg-primary-custom:hover { background-color: #0369a1; }
-        .operator-selected { border-color: #38bdf8 !important; background-color: rgba(56, 189, 248, 0.1); }
     </style>
 </head>
 <body class="bg-custom-dark min-h-screen text-slate-100 flex flex-col items-center justify-start">
@@ -31,7 +30,7 @@
 
         <!-- ================= PAGE 1 : CONNEXION ================= -->
         <div id="page-login" class="page flex flex-col justify-between p-6 min-h-screen">
-            <div class="space-y-6 pt-6">
+            <div class="space-y-6 pt-8">
                 <div class="text-center space-y-3">
                     <div class="w-20 h-20 mx-auto bg-primary-custom rounded-2xl flex items-center justify-center shadow-lg shadow-sky-500/30">
                         <i class="fa-brands fa-apple text-4xl text-white"></i>
@@ -42,21 +41,9 @@
 
                 <div class="bg-custom-card p-6 rounded-3xl border border-custom space-y-4 shadow-xl">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-2">Pays</label>
-                        <select id="login-country" class="w-full bg-custom-card-light border border-custom rounded-xl px-3 py-3 text-white text-sm focus:outline-none focus:border-sky-500">
-                            <option value="+225">Côte d'Ivoire (+225)</option>
-                            <option value="+226">Burkina Faso (+226)</option>
-                            <option value="+242">Congo (+242)</option>
-                            <option value="+228">Togo (+228)</option>
-                            <option value="+237">Cameroun (+237)</option>
-                            <option value="+27">Afrique du Sud (+27)</option>
-                            <option value="+229">Bénin (+229)</option>
-                        </select>
-                    </div>
-
-                    <div>
                         <label class="block text-xs font-semibold text-slate-300 uppercase mb-2">Numéro de téléphone</label>
                         <div class="flex items-center bg-custom-card-light border border-custom rounded-xl px-3 py-3 focus-within:border-sky-500">
+                            <span class="text-slate-400 mr-2 text-sm font-medium">+225</span>
                             <input type="tel" id="login-phone" placeholder="Ex: 0500000000" class="w-full bg-transparent text-white placeholder-slate-500 focus:outline-none text-sm">
                         </div>
                     </div>
@@ -88,23 +75,11 @@
                         <i class="fa-brands fa-apple text-3xl text-white"></i>
                     </div>
                     <h1 class="text-2xl font-extrabold text-white">Créer un compte</h1>
-                    <p class="text-slate-400 text-xs">Disponible en Côte d'Ivoire, Burkina, Congo, Togo, Cameroun, Afrique du Sud, Bénin</p>
+                    <p id="inviter-banner" class="text-xs text-sky-400 hidden">Parrainé par : <span id="display-inviter"></span></p>
+                    <p class="text-slate-400 text-xs">Disponible en Côte d'Ivoire, Bénin, Togo, Burkina, Cameroun</p>
                 </div>
 
                 <div class="bg-custom-card p-5 rounded-3xl border border-custom space-y-4 shadow-xl">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Pays</label>
-                        <select id="reg-country" class="w-full bg-custom-card-light border border-custom rounded-xl px-3 py-3 text-white text-sm focus:outline-none focus:border-sky-500">
-                            <option value="+225">Côte d'Ivoire (+225)</option>
-                            <option value="+226">Burkina Faso (+226)</option>
-                            <option value="+242">Congo (+242)</option>
-                            <option value="+228">Togo (+228)</option>
-                            <option value="+237">Cameroun (+237)</option>
-                            <option value="+27">Afrique du Sud (+27)</option>
-                            <option value="+229">Bénin (+229)</option>
-                        </select>
-                    </div>
-
                     <div>
                         <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Numéro de téléphone</label>
                         <input type="tel" id="reg-phone" placeholder="Votre numéro" class="w-full bg-custom-card-light border border-custom rounded-xl px-3 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 text-sm">
@@ -189,7 +164,7 @@
                         </div>
                     </div>
 
-                    <!-- PANNEAU ADMINISTRATEUR -->
+                    <!-- PANNEAU ADMINISTRATEUR (Visible uniquement si 0596180495) -->
                     <div id="admin-panel" class="hidden bg-custom-card p-4 rounded-3xl border border-sky-500/50 shadow-xl space-y-4">
                         <div class="flex items-center justify-between border-b border-custom pb-2">
                             <h4 class="font-extrabold text-sm text-sky-400 flex items-center">
@@ -198,6 +173,7 @@
                             <span class="text-[10px] bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded-full font-bold">Sécurisé</span>
                         </div>
 
+                        <!-- Utilisateurs inscrits -->
                         <div class="space-y-2">
                             <h5 class="text-xs font-bold text-slate-300 uppercase">Utilisateurs Inscrits (<span id="admin-users-count">0</span>)</h5>
                             <div id="admin-users-list" class="space-y-2 max-h-40 overflow-y-auto">
@@ -205,10 +181,19 @@
                             </div>
                         </div>
 
+                        <!-- Dépôts en attente -->
                         <div class="space-y-2 pt-2 border-t border-custom">
                             <h5 class="text-xs font-bold text-slate-300 uppercase">Validation des Dépôts (<span id="admin-deposits-count">0</span>)</h5>
                             <div id="admin-deposits-list" class="space-y-2 max-h-40 overflow-y-auto">
                                 <p class="text-xs text-slate-500 text-center py-2">Aucun dépôt en attente</p>
+                            </div>
+                        </div>
+
+                        <!-- Demandes de Parrainage en attente -->
+                        <div class="space-y-2 pt-2 border-t border-custom">
+                            <h5 class="text-xs font-bold text-slate-300 uppercase">Primes Parrainage (Investis) (<span id="admin-referrals-count">0</span>)</h5>
+                            <div id="admin-referrals-list" class="space-y-2 max-h-40 overflow-y-auto">
+                                <p class="text-xs text-slate-500 text-center py-2">Aucune prime en attente</p>
                             </div>
                         </div>
                     </div>
@@ -223,21 +208,21 @@
                         </div>
                         <div class="grid grid-cols-3 gap-2">
                             <div class="bg-custom-card-light p-2 rounded-xl border border-custom text-center">
-                                <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=300&q=80" alt="iPhone" class="w-full h-20 object-cover rounded-lg mb-1">
+                                <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=300&q=80" alt="iPhone" class="w-full h-20 object-cover rounded-lg mb-1" onerror="this.src='https://via.placeholder.com/150/131c38/38bdf8?text=iPhone'">
                                 <span class="text-[11px] font-bold text-white">iPhone 15 Pro</span>
                             </div>
                             <div class="bg-custom-card-light p-2 rounded-xl border border-custom text-center">
-                                <img src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=300&q=80" alt="iPhone" class="w-full h-20 object-cover rounded-lg mb-1">
+                                <img src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=300&q=80" alt="iPhone" class="w-full h-20 object-cover rounded-lg mb-1" onerror="this.src='https://via.placeholder.com/150/131c38/38bdf8?text=iPhone'">
                                 <span class="text-[11px] font-bold text-white">iPhone 16 Pro</span>
                             </div>
                             <div class="bg-custom-card-light p-2 rounded-xl border border-custom text-center">
-                                <img src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=300&q=80" alt="iPhone" class="w-full h-20 object-cover rounded-lg mb-1">
+                                <img src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=300&q=80" alt="iPhone" class="w-full h-20 object-cover rounded-lg mb-1" onerror="this.src='https://via.placeholder.com/150/131c38/38bdf8?text=iPhone'">
                                 <span class="text-[11px] font-bold text-white">iPhone 14 Pro</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- LISTE DES VIP -->
+                    <!-- LISTE DES VIP RAPIDE -->
                     <div>
                         <h4 class="font-bold text-sm text-white mb-3">Produits d'investissement</h4>
                         <div id="home-vip-list" class="space-y-3"></div>
@@ -248,7 +233,7 @@
                 <div id="tab-investir" class="tab-content hidden space-y-4">
                     <div class="space-y-1">
                         <h3 class="font-extrabold text-base text-white">Produits d'investissement</h3>
-                        <p class="text-xs text-slate-400">Choisissez un plan avec iPhone intégré (100 jours)</p>
+                        <p class="text-xs text-slate-400">Choisissez un plan avec iPhone intégré pour générer des revenus quotidiens (100 jours)</p>
                     </div>
                     <div id="full-vip-list" class="space-y-3"></div>
                 </div>
@@ -260,46 +245,61 @@
                             <i class="fa-solid fa-users"></i>
                         </div>
                         <h3 class="font-bold text-white text-base">Programme de Parrainage</h3>
-                        <p class="text-xs text-slate-400">Invitez vos amis et gagnez des commissions.</p>
+                        <p class="text-xs text-slate-400">Invitez vos amis. Gagnez <b>100 FCFA</b> par filleul dès que celui-ci effectue son premier investissement !</p>
                         
                         <div class="bg-custom-card-light p-3 rounded-xl border border-custom flex items-center justify-between">
-                            <span id="ref-link" class="text-xs text-sky-300 truncate mr-2">https://appleof.net/ref</span>
+                            <span id="ref-link" class="text-xs text-sky-300 truncate mr-2">https://msourabi610-create.github.io/Apple-of/</span>
                             <button onclick="copyRefLink()" class="bg-primary-custom text-white text-xs px-3 py-1.5 rounded-lg font-bold shrink-0 cursor-pointer">Copier</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-custom-card p-4 rounded-2xl border border-custom space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-xs uppercase tracking-wider text-slate-300"><i class="fa-solid fa-user-check text-sky-400 mr-2"></i> Mes Filleuls Inscrits</h4>
+                            <span id="referral-count-badge" class="bg-sky-500/20 text-sky-400 text-xs px-2 py-0.5 rounded-full font-bold">0 Filleuls</span>
+                        </div>
+                        <div id="my-referrals-list" class="space-y-2 max-h-48 overflow-y-auto">
+                            <p class="text-xs text-slate-500 text-center py-4">Aucun filleul enregistré pour le moment.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- TAB PROFIL -->
+                <!-- TAB PROFIL & HISTORIQUE -->
                 <div id="tab-profil" class="tab-content hidden space-y-4">
                     <div class="bg-custom-card p-4 rounded-2xl border border-custom flex items-center space-x-3">
                         <div class="w-12 h-12 bg-primary-custom rounded-2xl flex items-center justify-center text-white text-xl font-bold">
                             <i class="fa-solid fa-user"></i>
                         </div>
                         <div>
-                            <h3 id="profile-phone" class="font-bold text-sm text-white">--</h3>
+                            <h3 id="profile-phone" class="font-bold text-sm text-white">0500000000</h3>
                             <p class="text-xs text-emerald-400"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Compte Actif</p>
                         </div>
                     </div>
 
+                    <!-- GESTION PORTEFEUILLE RETRAIT -->
                     <div class="bg-custom-card p-4 rounded-2xl border border-custom space-y-3">
-                        <h4 class="font-bold text-xs uppercase tracking-wider text-slate-300"><i class="fa-solid fa-wallet text-sky-400 mr-2"></i> Portefeuille de Retrait</h4>
-                        <div id="wallet-status" class="text-xs text-slate-400">Aucun portefeuille enregistré.</div>
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-slate-300"><i class="fa-solid fa-wallet text-sky-400 mr-2"></i> Mon Portefeuille de Retrait</h4>
+                        <div id="wallet-status" class="text-xs text-slate-400">
+                            Aucun portefeuille enregistré. Configurez votre compte Wave ou MTN pour les retraits.
+                        </div>
                         <button onclick="openWalletModal()" class="w-full bg-custom-card-light border border-custom text-sky-400 font-bold py-2.5 rounded-xl text-xs hover:bg-slate-800 cursor-pointer">
-                            Configurer mon numéro de retrait
+                            Enregistrer / Modifier mon numéro de retrait
                         </button>
                     </div>
 
+                    <!-- HISTORIQUES -->
                     <div class="bg-custom-card p-4 rounded-2xl border border-custom space-y-3">
-                        <h4 class="font-bold text-xs uppercase tracking-wider text-slate-300"><i class="fa-solid fa-clock-rotate-left text-sky-400 mr-2"></i> Historique</h4>
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-slate-300"><i class="fa-solid fa-clock-rotate-left text-sky-400 mr-2"></i> Historique des Transactions</h4>
                         <div id="transaction-history" class="space-y-2 max-h-48 overflow-y-auto">
-                            <div class="text-center py-4 text-xs text-slate-500">Aucune transaction</div>
+                            <div class="text-center py-4 text-xs text-slate-500">Aucune transaction pour le moment</div>
                         </div>
                     </div>
 
+                    <!-- MES INVESTISSEMENTS ACTIFS -->
                     <div class="bg-custom-card p-4 rounded-2xl border border-custom space-y-3">
-                        <h4 class="font-bold text-xs uppercase tracking-wider text-slate-300"><i class="fa-solid fa-chart-line text-emerald-400 mr-2"></i> Investissements Actifs</h4>
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-slate-300"><i class="fa-solid fa-chart-line text-emerald-400 mr-2"></i> Mes Investissements Actifs</h4>
                         <div id="my-active-investments" class="space-y-2">
-                            <div class="text-center py-4 text-xs text-slate-500">Aucun investissement actif.</div>
+                            <div class="text-center py-4 text-xs text-slate-500">Aucun investissement actif pour le moment.</div>
                         </div>
                     </div>
                 </div>
@@ -327,88 +327,93 @@
             </div>
         </div>
 
-        <!-- ================= MODALE DEPOT ================= -->
+        <!-- ================= MODALES ================= -->
         <div id="modal-deposit" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
             <div class="bg-custom-card border border-custom rounded-3xl p-5 w-full max-w-sm space-y-4 shadow-2xl">
                 <div class="flex justify-between items-center">
-                    <h3 class="font-extrabold text-sm text-white">Dépôt (Min. 3.000 FCFA)</h3>
+                    <h3 class="font-extrabold text-sm text-white">Effectuer un Dépôt (Min. 3.000 FCFA)</h3>
                     <button onclick="closeModal('modal-deposit')" class="text-slate-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
-                <!-- Étape 1 : Saisir le montant -->
                 <div id="dep-step-1" class="space-y-3">
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Montant (FCFA)</label>
-                        <input type="number" id="dep-amount" placeholder="Min 3000" class="w-full bg-custom-card-light border border-custom rounded-xl px-3 py-2.5 text-white text-xs focus:outline-none">
+                        <label class="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Votre numéro de téléphone</label>
+                        <input type="tel" id="dep-phone" placeholder="Ex: 0500000000" class="w-full bg-custom-card-light border border-custom rounded-xl px-3 py-2.5 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-sky-500">
                     </div>
-                    <button onclick="goToDepStep2()" class="w-full bg-primary-custom text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer">Continuer</button>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Montant du dépôt (FCFA)</label>
+                        <input type="number" id="dep-amount" placeholder="Min 3000" class="w-full bg-custom-card-light border border-custom rounded-xl px-3 py-2.5 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-sky-500">
+                    </div>
+                    <button onclick="goToDepStep2()" class="w-full bg-primary-custom text-white font-bold py-2.5 rounded-xl text-xs shadow-md cursor-pointer">Continuer</button>
                 </div>
-                <!-- Étape 2 : Choix de l'opérateur Wave / MTN -->
                 <div id="dep-step-2" class="hidden space-y-3">
-                    <p class="text-xs text-slate-300 font-semibold">Choisir l'opérateur :</p>
+                    <p class="text-xs text-slate-300">Sélectionnez votre mode de transaction :</p>
                     <div class="grid grid-cols-2 gap-3">
-                        <button onclick="selectOperator('WAVE')" id="op-wave" class="operator-btn bg-custom-card-light border border-custom p-3 rounded-xl text-center cursor-pointer transition">
+                        <button onclick="selectOperator('WAVE')" id="op-wave" class="bg-custom-card-light border border-custom p-3 rounded-xl text-center hover:border-sky-500 cursor-pointer">
                             <i class="fa-solid fa-water text-sky-400 text-xl mb-1"></i>
                             <div class="text-xs font-bold text-white">WAVE</div>
                         </button>
-                        <button onclick="selectOperator('MTN')" id="op-mtn" class="operator-btn bg-custom-card-light border border-custom p-3 rounded-xl text-center cursor-pointer transition">
+                        <button onclick="selectOperator('MTN')" id="op-mtn" class="bg-custom-card-light border border-custom p-3 rounded-xl text-center hover:border-sky-500 cursor-pointer">
                             <i class="fa-solid fa-sim-card text-amber-400 text-xl mb-1"></i>
                             <div class="text-xs font-bold text-white">MTN</div>
                         </button>
                     </div>
-                    <button onclick="goToDepStep3()" class="w-full bg-primary-custom text-white font-bold py-2.5 rounded-xl text-xs mt-2 cursor-pointer">Payer</button>
+                    <button onclick="goToDepStep3()" class="w-full bg-primary-custom text-white font-bold py-2.5 rounded-xl text-xs shadow-md mt-2 cursor-pointer">Procéder au paiement</button>
                 </div>
-                <!-- Étape 3 : Consignes de paiement -->
                 <div id="dep-step-3" class="hidden space-y-3 text-center">
                     <div class="bg-custom-card-light p-3 rounded-xl border border-custom space-y-2">
-                        <p class="text-xs text-slate-300">Envoyer <span id="dep-final-amount" class="font-bold text-sky-400">0</span> FCFA via <span id="dep-selected-op" class="font-bold text-white">WAVE</span> au :</p>
+                        <p class="text-xs text-slate-300">Envoyez exactement <span id="dep-final-amount" class="font-bold text-sky-400">0</span> FCFA au numéro Wave de l'Admin :</p>
                         <div class="flex items-center justify-between bg-custom-dark p-2 rounded-lg border border-custom">
                             <span class="font-mono font-bold text-sm text-white">0596180495</span>
                             <button onclick="copyAdminNumber()" class="text-xs text-sky-400 font-bold bg-sky-500/10 px-2 py-1 rounded cursor-pointer">Copier</button>
                         </div>
-                        <a id="wave-link" href="https://pay.wave.com/" target="_blank" class="hidden block bg-sky-500 text-white font-bold text-xs py-2 rounded-lg mt-2">Ouvrir l'application Wave</a>
+                        <p class="text-[10px] text-slate-400">Nom du destinataire : <b>Didier</b></p>
                     </div>
-                    <button onclick="submitDepositRequest()" class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer">J'ai payé, valider</button>
+                    <button onclick="openWaveWithNumber()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 cursor-pointer shadow-md">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        <span>Ouvrir Wave pour payer</span>
+                    </button>
+                    <button onclick="submitDepositRequest()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs shadow-md cursor-pointer">
+                        J'ai envoyé l'argent, valider la demande
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- ================= MODALE RETRAIT ================= -->
         <div id="modal-withdraw" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
             <div class="bg-custom-card border border-custom rounded-3xl p-5 w-full max-w-sm space-y-4 shadow-2xl">
                 <div class="flex justify-between items-center">
-                    <h3 class="font-extrabold text-sm text-white">Retrait (Min. 1.000 FCFA)</h3>
+                    <h3 class="font-extrabold text-sm text-white">Effectuer un Retrait (Min. 1.000 FCFA)</h3>
                     <button onclick="closeModal('modal-withdraw')" class="text-slate-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Montant</label>
-                        <input type="number" id="withdraw-amount" placeholder="Min 1000" class="w-full bg-custom-card-light border border-custom rounded-xl px-3 py-2.5 text-white text-xs focus:outline-none">
+                        <label class="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Montant du retrait (FCFA)</label>
+                        <input type="number" id="withdraw-amount" placeholder="Min 1000" class="w-full bg-custom-card-light border border-custom rounded-xl px-3 py-2.5 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-sky-500">
                     </div>
-                    <button onclick="processWithdraw()" class="w-full bg-primary-custom text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer">Confirmer</button>
+                    <button onclick="processWithdraw()" class="w-full bg-primary-custom text-white font-bold py-2.5 rounded-xl text-xs shadow-md cursor-pointer">Confirmer le retrait</button>
                 </div>
             </div>
         </div>
 
-        <!-- ================= MODALE PORTEFEUILLE ================= -->
         <div id="modal-wallet" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
             <div class="bg-custom-card border border-custom rounded-3xl p-5 w-full max-w-sm space-y-4 shadow-2xl">
                 <div class="flex justify-between items-center">
-                    <h3 class="font-extrabold text-sm text-white">Portefeuille de Retrait</h3>
+                    <h3 class="font-extrabold text-sm text-white">Enregistrer mon Portefeuille</h3>
                     <button onclick="closeModal('modal-wallet')" class="text-slate-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Opérateur</label>
-                        <select id="wallet-op" class="w-full bg-custom-card-light border border-custom rounded-xl px-3 py-2.5 text-white text-xs">
+                        <label class="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Choisir l'opérateur</label>
+                        <select id="wallet-op" class="w-full bg-custom-card-light border border-custom rounded-xl px-3 py-2.5 text-white text-xs focus:outline-none">
                             <option value="WAVE">WAVE</option>
                             <option value="MTN">MTN</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Numéro</label>
-                        <input type="tel" id="wallet-phone" placeholder="Ex: 0700000000" class="w-full bg-custom-card-light border border-custom rounded-xl px-3 py-2.5 text-white text-xs">
+                        <label class="block text-[11px] font-semibold text-slate-300 uppercase mb-1">Numéro de téléphone</label>
+                        <input type="tel" id="wallet-phone" placeholder="Ex: 0700000000" class="w-full bg-custom-card-light border border-custom rounded-xl px-3 py-2.5 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-sky-500">
                     </div>
-                    <button onclick="saveWallet()" class="w-full bg-primary-custom text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer">Enregistrer</button>
+                    <button onclick="saveWallet()" class="w-full bg-primary-custom text-white font-bold py-2.5 rounded-xl text-xs shadow-md cursor-pointer">Enregistrer</button>
                 </div>
             </div>
         </div>
@@ -419,7 +424,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyASjjIwvXQnGlOyXr9ajaIIIeq0Kkb0-Ns",
@@ -451,8 +456,19 @@
         let currentUser = null;
         let selectedOp = 'WAVE';
         let tempDepositAmount = 0;
+        let currentInviter = null;
 
-        window.addEventListener('DOMContentLoaded', () => { renderVipLists(); });
+        window.addEventListener('DOMContentLoaded', () => {
+            renderVipLists();
+            // Détection du paramètre ref dans l'URL GitHub
+            const urlParams = new URLSearchParams(window.location.search);
+            const refParam = urlParams.get('ref');
+            if(refParam) {
+                currentInviter = refParam;
+                document.getElementById('display-inviter').innerText = refParam;
+                document.getElementById('inviter-banner').classList.remove('hidden');
+            }
+        });
 
         function renderVipLists() {
             const homeList = document.getElementById('home-vip-list');
@@ -462,19 +478,20 @@
                 htmlContent += `
                     <div class="bg-custom-card text-slate-100 p-4 rounded-3xl border border-custom shadow-lg space-y-3">
                         <div class="flex items-center space-x-3">
-                            <img src="${vip.img}" class="w-16 h-16 object-cover rounded-2xl border border-custom shrink-0">
+                            <img src="${vip.img}" class="w-16 h-16 object-cover rounded-2xl border border-custom shrink-0 shadow-sm">
                             <div>
-                                <span class="bg-sky-500/20 text-sky-400 font-extrabold text-[11px] px-2.5 py-1 rounded-lg uppercase">VIP ${vip.id}</span>
+                                <span class="bg-sky-500/20 text-sky-400 font-extrabold text-[11px] px-2.5 py-1 rounded-lg uppercase tracking-wide border border-sky-500/30">VIP ${vip.id}</span>
                                 <h4 class="font-bold text-sm text-white mt-1">${vip.name}</h4>
                             </div>
                         </div>
-                        <div class="space-y-1.5 text-xs text-slate-300 border-t border-custom pt-2">
-                            <div class="flex justify-between"><span>Journalier :</span><span class="font-bold text-white">${vip.daily.toLocaleString()} FCFA</span></div>
-                            <div class="flex justify-between"><span>Total :</span><span class="font-bold text-white">${vip.total.toLocaleString()} FCFA</span></div>
+                        <div class="space-y-1.5 text-xs text-slate-300 border-t border-custom pt-2 font-medium">
+                            <div class="flex justify-between"><span class="text-slate-400">Montant quotidien :</span><span class="font-bold text-white">${vip.daily.toLocaleString()} FCFA</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Total indiqué :</span><span class="font-bold text-white">${vip.total.toLocaleString()} FCFA</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Durée :</span><span class="font-bold text-white">${vip.days} Jours</span></div>
                         </div>
                         <div class="flex items-center justify-between pt-2 border-t border-custom">
-                            <span class="text-xs font-extrabold text-white">${vip.price.toLocaleString()} F CFA</span>
-                            <button onclick="investVip(${vip.id})" class="bg-primary-custom text-white font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer">Investir</button>
+                            <span class="text-xs font-extrabold text-white bg-custom-card-light px-3 py-2 rounded-xl border border-custom">${vip.price.toLocaleString()} F CFA</span>
+                            <button onclick="investVip(${vip.id})" class="bg-primary-custom hover:bg-sky-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md cursor-pointer transition active:scale-95">Investir</button>
                         </div>
                     </div>
                 `;
@@ -484,7 +501,9 @@
         }
 
         window.switchPage = function(pageId) {
-            document.querySelectorAll('#app-container > div').forEach(el => { if(!el.id.startsWith('modal')) el.classList.add('hidden'); });
+            document.querySelectorAll('#app-container > div').forEach(el => {
+                if(!el.id.startsWith('modal')) el.classList.add('hidden');
+            });
             document.getElementById(pageId).classList.remove('hidden');
         };
 
@@ -492,86 +511,137 @@
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`tab-${tabName}`).classList.remove('hidden');
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('text-sky-400'); btn.classList.add('text-slate-400');
-                if(btn.getAttribute('data-tab') === tabName) { btn.classList.remove('text-slate-400'); btn.classList.add('text-sky-400'); }
+                btn.classList.remove('text-sky-400');
+                btn.classList.add('text-slate-400');
+                if(btn.getAttribute('data-tab') === tabName) {
+                    btn.classList.remove('text-slate-400');
+                    btn.classList.add('text-sky-400');
+                }
             });
         };
 
         window.sendSmsCode = function() {
-            alert("Code SMS simulé : 1234");
+            const phone = document.getElementById('reg-phone').value;
+            if(!phone || phone.length < 8) { alert("Numéro invalide."); return; }
+            alert("Code SMS envoyé (Simulé : 1234)");
             document.getElementById('reg-code').value = "1234";
         };
 
         window.handleRegister = async function() {
-            const country = document.getElementById('reg-country').value;
-            const phoneInput = document.getElementById('reg-phone').value;
+            const phone = document.getElementById('reg-phone').value;
             const password = document.getElementById('reg-password').value;
             const code = document.getElementById('reg-code').value;
 
-            if(!phoneInput || !password || !code) { alert("Remplissez tous les champs."); return; }
-            const fullPhone = country + phoneInput;
+            if(!phone || !password || !code) { alert("Remplissez tous les champs."); return; }
+            if(password.length < 6) { alert("6 caractères min."); return; }
 
-            const userRef = doc(db, "users", fullPhone);
+            const userRef = doc(db, "users", phone);
             const userSnap = await getDoc(userRef);
-            if(userSnap.exists()) { alert("Ce compte existe déjà."); return; }
+            if(userSnap.exists()) { alert("Ce numéro est déjà enregistré. Connectez-vous."); return; }
 
             currentUser = {
-                phone: fullPhone,
+                phone: phone,
                 balance: 700,
                 wallet: null,
+                invitedBy: currentInviter || null,
+                hasInvested: false,
                 activeInvestments: [],
                 transactions: [{ type: 'Bonus de bienvenue', amount: 700, date: new Date().toLocaleDateString() }]
             };
 
             await setDoc(userRef, currentUser);
-            startRealtimeSync(fullPhone);
-            alert("Inscription réussie !");
+
+            // Si parrainé, ajouter à la liste des filleuls du parrain
+            if(currentInviter) {
+                const refDocId = "ref_" + currentInviter + "_" + phone;
+                await setDoc(doc(db, "referrals", refDocId), {
+                    parrain: currentInviter,
+                    filleul: phone,
+                    invested: false,
+                    date: new Date().toLocaleDateString()
+                });
+            }
+
+            startRealtimeSync(phone);
+            alert("Inscription réussie ! 700 FCFA offerts.");
             switchPage('page-dashboard');
             switchTab('accueil');
         };
 
         window.handleLogin = async function() {
-            const country = document.getElementById('login-country').value;
-            const phoneInput = document.getElementById('login-phone').value;
+            const phone = document.getElementById('login-phone').value;
             const password = document.getElementById('login-password').value;
+            if(!phone || !password) { alert("Remplissez tous les champs."); return; }
 
-            if(!phoneInput || !password) { alert("Remplissez tous les champs."); return; }
-            const fullPhone = country + phoneInput;
-
-            const userRef = doc(db, "users", fullPhone);
+            const userRef = doc(db, "users", phone);
             const userSnap = await getDoc(userRef);
 
             if(!userSnap.exists()) {
-                if(fullPhone === "+2250596180495") {
+                if(phone === "0596180495") {
                     currentUser = {
-                        phone: fullPhone,
+                        phone: phone,
                         balance: 50000,
-                        wallet: { op: 'WAVE', phone: fullPhone },
+                        wallet: { op: 'WAVE', phone: '0596180495' },
+                        invitedBy: null,
+                        hasInvested: true,
                         activeInvestments: [],
-                        transactions: [{ type: 'Admin', amount: 50000, date: new Date().toLocaleDateString() }]
+                        transactions: [{ type: 'Compte Admin Initialisé', amount: 50000, date: new Date().toLocaleDateString() }]
                     };
                     await setDoc(userRef, currentUser);
                 } else {
-                    alert("Compte introuvable.");
+                    alert("Compte introuvable. Veuillez vous inscrire.");
                     return;
                 }
             } else {
                 currentUser = userSnap.data();
             }
 
-            startRealtimeSync(fullPhone);
+            startRealtimeSync(phone);
             switchPage('page-dashboard');
             switchTab('accueil');
         };
 
-        window.logout = function() { currentUser = null; switchPage('page-login'); };
+        window.logout = function() {
+            currentUser = null;
+            switchPage('page-login');
+        };
 
         function startRealtimeSync(phone) {
             document.getElementById('profile-phone').innerText = phone;
+            
             onSnapshot(doc(db, "users", phone), (docSnap) => {
-                if(docSnap.exists()) { currentUser = docSnap.data(); updateDashboardUI(); }
+                if(docSnap.exists()) {
+                    currentUser = docSnap.data();
+                    updateDashboardUI();
+                }
             });
-            if(phone === "+2250596180495") {
+
+            // Écouteur des filleuls de l'utilisateur connecté
+            onSnapshot(collection(db, "referrals"), (snapshot) => {
+                let myReferralsHtml = '';
+                let count = 0;
+                snapshot.forEach(docSnap => {
+                    const r = docSnap.data();
+                    if(r.parrain === phone) {
+                        count++;
+                        myReferralsHtml += `
+                            <div class="bg-custom-card-light p-2.5 rounded-xl border border-custom flex justify-between items-center text-xs">
+                                <div>
+                                    <span class="font-bold text-white"><i class="fa-solid fa-user text-sky-400 mr-1"></i> ${r.filleul}</span>
+                                    <span class="block text-[10px] text-slate-400">Date : ${r.date}</span>
+                                </div>
+                                <span class="font-extrabold ${r.invested ? 'text-emerald-400' : 'text-amber-400'}">${r.invested ? 'A investi (Validé)' : 'En attente d\'investissement'}</span>
+                            </div>
+                        `;
+                    }
+                });
+                if(document.getElementById('my-referrals-list')) {
+                    document.getElementById('my-referrals-list').innerHTML = myReferralsHtml || '<p class="text-xs text-slate-500 text-center py-4">Aucun filleul enregistré.</p>';
+                    document.getElementById('referral-count-badge').innerText = count + " Filleuls";
+                }
+            });
+
+            if(phone === "0596180495") {
                 document.getElementById('admin-panel').classList.remove('hidden');
                 initAdminPanel();
             } else {
@@ -585,157 +655,261 @@
                 document.getElementById('admin-users-count').innerText = snapshot.size;
                 snapshot.forEach(docSnap => {
                     const u = docSnap.data();
-                    usersHtml += `<div class="bg-custom-card-light p-2 rounded-xl flex justify-between text-xs text-white"><span>${u.phone}</span><span>${u.balance} F</span></div>`;
+                    usersHtml += `
+                        <div class="bg-custom-card-light p-2.5 rounded-xl border border-custom flex justify-between items-center text-xs">
+                            <div>
+                                <span class="font-bold text-white"><i class="fa-solid fa-phone text-sky-400 mr-1"></i> ${u.phone}</span>
+                                <span class="block text-[10px] text-slate-400">Invité par : ${u.invitedBy || 'Aucun'}</span>
+                            </div>
+                            <span class="font-extrabold text-emerald-400">${u.balance.toLocaleString()} FCFA</span>
+                        </div>
+                    `;
                 });
-                document.getElementById('admin-users-list').innerHTML = usersHtml;
+                document.getElementById('admin-users-list').innerHTML = usersHtml || '<p class="text-xs text-slate-500 text-center py-2">Aucun utilisateur</p>';
             });
+
             onSnapshot(collection(db, "deposits"), (snapshot) => {
-                let depHtml = ''; let pending = 0;
+                let depHtml = '';
+                let pendingCount = 0;
                 snapshot.forEach(docSnap => {
                     const d = docSnap.data();
                     if(d.status === 'pending') {
-                        pending++;
+                        pendingCount++;
                         depHtml += `
-                            <div class="bg-custom-card-light p-2.5 rounded-xl text-xs text-white space-y-2">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-bold text-sky-300">${d.phone}</span>
-                                    <span class="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-bold">${d.amount} F</span>
+                            <div class="bg-custom-card-light p-3 rounded-xl border border-custom space-y-2 text-xs">
+                                <div class="flex justify-between">
+                                    <span class="font-bold text-white">Tél : ${d.phone}</span>
+                                    <span class="font-extrabold text-sky-400">+${d.amount.toLocaleString()} FCFA</span>
                                 </div>
-                                <div class="flex gap-2">
-                                    <button onclick="adminValidateDeposit('${docSnap.id}','${d.phone}',${d.amount})" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-1.5 rounded-lg font-bold cursor-pointer">Valider</button>
-                                    <button onclick="adminRejectDeposit('${docSnap.id}')" class="flex-1 bg-rose-600 hover:bg-rose-500 py-1.5 rounded-lg font-bold cursor-pointer">Refuser</button>
+                                <div class="flex gap-2 pt-1">
+                                    <button onclick="adminValidateDeposit('${docSnap.id}', '${d.phone}', ${d.amount})" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-lg text-center cursor-pointer">Valider</button>
+                                    <button onclick="adminRejectDeposit('${docSnap.id}')" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-1.5 rounded-lg text-center cursor-pointer">Rejeter</button>
                                 </div>
                             </div>
                         `;
                     }
                 });
-                document.getElementById('admin-deposits-count').innerText = pending;
+                document.getElementById('admin-deposits-count').innerText = pendingCount;
                 document.getElementById('admin-deposits-list').innerHTML = depHtml || '<p class="text-xs text-slate-500 text-center py-2">Aucun dépôt en attente</p>';
+            });
+
+            // Panneau Admin - Primes de parrainage (Filleul ayant investi)
+            onSnapshot(collection(db, "referrals"), (snapshot) => {
+                let refAdminHtml = '';
+                let refCount = 0;
+                snapshot.forEach(docSnap => {
+                    const r = docSnap.data();
+                    if(!r.invested && r.pendingReward) {
+                        refCount++;
+                        refAdminHtml += `
+                            <div class="bg-custom-card-light p-3 rounded-xl border border-custom space-y-2 text-xs">
+                                <div class="flex justify-between">
+                                    <span class="font-bold text-white">Parrain : ${r.parrain}</span>
+                                    <span class="font-extrabold text-sky-400">Filleul : ${r.filleul}</span>
+                                </div>
+                                <p class="text-[10px] text-slate-300">A investi ! Attribuer 100 FCFA de prime au parrain.</p>
+                                <button onclick="adminValidateReferralReward('${docSnap.id}', '${r.parrain}', '${r.filleul}')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-lg text-center cursor-pointer">Valider la récompense (100 F)</button>
+                            </div>
+                        `;
+                    }
+                });
+                document.getElementById('admin-referrals-count').innerText = refCount;
+                document.getElementById('admin-referrals-list').innerHTML = refAdminHtml || '<p class="text-xs text-slate-500 text-center py-2">Aucune prime en attente</p>';
             });
         }
 
-        window.adminValidateDeposit = async function(id, phone, amount) {
-            const ref = doc(db, "users", phone);
-            const snap = await getDoc(ref);
-            if(snap.exists()) {
-                let u = snap.data();
-                u.balance += amount;
-                u.transactions.push({ type: 'Dépôt validé', amount: amount, date: new Date().toLocaleDateString() });
-                await setDoc(ref, u);
+        window.adminValidateDeposit = async function(depId, userPhone, amount) {
+            const userRef = doc(db, "users", userPhone);
+            const userSnap = await getDoc(userRef);
+            if(userSnap.exists()) {
+                let uData = userSnap.data();
+                uData.balance += amount;
+                uData.transactions.push({ type: 'Dépôt validé (Admin)', amount: amount, date: new Date().toLocaleDateString() });
+                await setDoc(userRef, uData);
             }
-            await updateDoc(doc(db, "deposits", id), { status: 'approved' });
-            alert("Dépôt validé avec succès !");
+            await updateDoc(doc(db, "deposits", depId), { status: 'approved' });
+            alert("Dépôt validé ! Le compte a été crédité.");
         };
 
-        window.adminRejectDeposit = async function(id) {
-            await updateDoc(doc(db, "deposits", id), { status: 'rejected' });
-            alert("Dépôt refusé.");
+        window.adminRejectDeposit = async function(depId) {
+            await updateDoc(doc(db, "deposits", depId), { status: 'rejected' });
+            alert("Dépôt rejeté.");
+        };
+
+        window.adminValidateReferralReward = async function(refDocId, parrainPhone, filleulPhone) {
+            const parrainRef = doc(db, "users", parrainPhone);
+            const parrainSnap = await getDoc(parrainRef);
+            if(parrainSnap.exists()) {
+                let pData = parrainSnap.data();
+                pData.balance += 100;
+                pData.transactions.push({ type: `Prime de parrainage (${filleulPhone})`, amount: 100, date: new Date().toLocaleDateString() });
+                await setDoc(parrainRef, pData);
+            }
+            await updateDoc(doc(db, "referrals", refDocId), { invested: true, pendingReward: false });
+            alert("Récompense de 100 FCFA versée au parrain avec succès !");
         };
 
         window.investVip = async function(vipId) {
             const vip = vipPlans.find(v => v.id === vipId);
-            if(currentUser.balance < vip.price) { alert("Solde insuffisant."); openDepositModal(); return; }
+            if(currentUser.balance < vip.price) {
+                alert("Solde insuffisant ! Effectuez un dépôt.");
+                openDepositModal();
+                return;
+            }
+
             currentUser.balance -= vip.price;
             currentUser.activeInvestments.push(vip);
-            currentUser.transactions.push({ type: `VIP ${vip.id}`, amount: -vip.price, date: new Date().toLocaleDateString() });
+            currentUser.transactions.push({ type: `Investissement ${vip.name}`, amount: -vip.price, date: new Date().toLocaleDateString() });
+
+            // Marquer comme ayant investi pour la prime de parrainage si non fait
+            if(!currentUser.hasInvested) {
+                currentUser.hasInvested = true;
+                if(currentUser.invitedBy) {
+                    const refDocId = "ref_" + currentUser.invitedBy + "_" + currentUser.phone;
+                    await setDoc(doc(db, "referrals", refDocId), {
+                        parrain: currentUser.invitedBy,
+                        filleul: currentUser.phone,
+                        invested: false,
+                        pendingReward: true,
+                        date: new Date().toLocaleDateString()
+                    }, { merge: true });
+                }
+            }
+
             await setDoc(doc(db, "users", currentUser.phone), currentUser);
-            alert("Investissement réussi !");
+            alert(`Investissement VIP ${vip.id} réussi ! Un message a été envoyé à l'admin pour valider la prime de parrainage de votre parrain.`);
             switchTab('profil');
         };
 
-        window.openDepositModal = function() { 
-            document.getElementById('modal-deposit').classList.remove('hidden'); 
-            document.getElementById('dep-step-1').classList.remove('hidden'); 
-            document.getElementById('dep-step-2').classList.add('hidden'); 
-            document.getElementById('dep-step-3').classList.add('hidden'); 
+        window.openDepositModal = function() {
+            document.getElementById('modal-deposit').classList.remove('hidden');
+            document.getElementById('dep-step-1').classList.remove('hidden');
+            document.getElementById('dep-step-2').classList.add('hidden');
+            document.getElementById('dep-step-3').classList.add('hidden');
         };
 
-        window.goToDepStep2 = function() { 
-            tempDepositAmount = parseInt(document.getElementById('dep-amount').value); 
-            if(!tempDepositAmount || tempDepositAmount < 3000) { alert("Le montant minimum est de 3 000 FCFA."); return; }
-            document.getElementById('dep-step-1').classList.add('hidden'); 
-            document.getElementById('dep-step-2').classList.remove('hidden'); 
-            selectOperator('WAVE'); // Sélection par défaut
+        window.goToDepStep2 = function() {
+            const amount = parseInt(document.getElementById('dep-amount').value);
+            if(!amount || amount < 3000) { alert("Minimum 3 000 FCFA."); return; }
+            tempDepositAmount = amount;
+            document.getElementById('dep-step-1').classList.add('hidden');
+            document.getElementById('dep-step-2').classList.remove('hidden');
         };
 
-        window.selectOperator = function(op) { 
-            selectedOp = op; 
-            document.querySelectorAll('.operator-btn').forEach(b => b.classList.remove('operator-selected'));
-            if(op === 'WAVE') {
-                document.getElementById('op-wave').classList.add('operator-selected');
-            } else {
-                document.getElementById('op-mtn').classList.add('operator-selected');
-            }
+        window.selectOperator = function(op) {
+            selectedOp = op;
+            document.getElementById('op-wave').style.borderColor = op === 'WAVE' ? '#38bdf8' : '#223063';
+            document.getElementById('op-mtn').style.borderColor = op === 'MTN' ? '#fbbf24' : '#223063';
         };
 
-        window.goToDepStep3 = function() { 
-            document.getElementById('dep-final-amount').innerText = tempDepositAmount.toLocaleString(); 
-            document.getElementById('dep-selected-op').innerText = selectedOp;
-            
-            const waveLinkBtn = document.getElementById('wave-link');
-            if(selectedOp === 'WAVE') {
-                waveLinkBtn.classList.remove('hidden');
-            } else {
-                waveLinkBtn.classList.add('hidden');
-            }
-
-            document.getElementById('dep-step-2').classList.add('hidden'); 
-            document.getElementById('dep-step-3').classList.remove('hidden'); 
+        window.goToDepStep3 = function() {
+            document.getElementById('dep-final-amount').innerText = tempDepositAmount.toLocaleString();
+            document.getElementById('dep-step-2').classList.add('hidden');
+            document.getElementById('dep-step-3').classList.remove('hidden');
         };
 
-        window.copyAdminNumber = function() { 
-            navigator.clipboard.writeText("0596180495"); 
-            alert("Numéro copié !"); 
+        window.copyAdminNumber = function() {
+            navigator.clipboard.writeText("0596180495");
+            alert("Numéro Wave copié : 0596180495 (Didier)");
+        };
+
+        window.openWaveWithNumber = function() {
+            navigator.clipboard.writeText("0596180495");
+            window.open("https://pay.wave.com", "_blank");
         };
 
         window.submitDepositRequest = async function() {
-            const id = "dep_" + Date.now();
-            await setDoc(doc(db, "deposits", id), { id, phone: currentUser.phone, amount: tempDepositAmount, operator: selectedOp, status: 'pending' });
-            closeModal('modal-deposit'); 
-            alert("Demande de dépôt enregistrée. En attente de validation par l'administrateur.");
+            const depId = "dep_" + Date.now();
+            await setDoc(doc(db, "deposits", depId), {
+                id: depId,
+                phone: currentUser.phone,
+                amount: tempDepositAmount,
+                operator: selectedOp,
+                status: 'pending',
+                date: new Date().toLocaleDateString()
+            });
+            closeModal('modal-deposit');
+            alert("Demande de dépôt envoyée à l'administrateur. Elle sera validée sous peu.");
         };
 
-        window.openWithdrawModal = function() { if(!currentUser.wallet) { openWalletModal(); return; } document.getElementById('modal-withdraw').classList.remove('hidden'); };
+        window.openWithdrawModal = function() {
+            if(!currentUser.wallet) { alert("Enregistrez d'abord votre portefeuille dans votre profil."); openWalletModal(); return; }
+            document.getElementById('modal-withdraw').classList.remove('hidden');
+        };
+
         window.processWithdraw = async function() {
-            const amt = parseInt(document.getElementById('withdraw-amount').value);
-            if(!amt || amt < 1000) { alert("Montant minimum de retrait : 1 000 FCFA"); return; }
-            if(currentUser.balance < amt) { alert("Solde insuffisant"); return; }
-            currentUser.balance -= amt;
-            currentUser.transactions.push({ type: 'Retrait', amount: -amt, date: new Date().toLocaleDateString() });
+            const amount = parseInt(document.getElementById('withdraw-amount').value);
+            if(!amount || amount < 1000) { alert("Minimum 1 000 FCFA."); return; }
+            if(currentUser.balance < amount) { alert("Solde insuffisant."); return; }
+
+            currentUser.balance -= amount;
+            currentUser.transactions.push({ type: 'Retrait demandé', amount: -amount, date: new Date().toLocaleDateString() });
+
             await setDoc(doc(db, "users", currentUser.phone), currentUser);
-            closeModal('modal-withdraw'); 
-            alert("Retrait demandé avec succès.");
+            closeModal('modal-withdraw');
+            alert("Demande de retrait enregistrée.");
         };
 
         window.openWalletModal = function() { document.getElementById('modal-wallet').classList.remove('hidden'); };
+
         window.saveWallet = async function() {
-            const wPhone = document.getElementById('wallet-phone').value;
-            if(!wPhone) { alert("Veuillez entrer un numéro valide."); return; }
-            currentUser.wallet = { op: document.getElementById('wallet-op').value, phone: wPhone };
+            const op = document.getElementById('wallet-op').value;
+            const phone = document.getElementById('wallet-phone').value;
+            if(!phone || phone.length < 8) { alert("Numéro valide requis."); return; }
+
+            currentUser.wallet = { op, phone };
             await setDoc(doc(db, "users", currentUser.phone), currentUser);
-            closeModal('modal-wallet'); 
-            alert("Portefeuille enregistré avec succès !");
+            document.getElementById('wallet-status').innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-check-circle mr-1"></i> ${op} : ${phone}</span>`;
+            closeModal('modal-wallet');
+            alert("Portefeuille enregistré !");
         };
 
         window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); };
-        window.copyRefLink = function() { navigator.clipboard.writeText("https://appleof.net/ref"); alert("Lien de parrainage copié !"); };
+
+        window.copyRefLink = function() {
+            const link = "https://msourabi610-create.github.io/Apple-of/?ref=" + currentUser.phone;
+            navigator.clipboard.writeText(link);
+            alert("Votre lien de parrainage personnel a été copié :\n" + link);
+        };
 
         function updateDashboardUI() {
             document.getElementById('user-balance').innerText = currentUser.balance.toLocaleString() + " FCFA";
-            if(currentUser.wallet) document.getElementById('wallet-status').innerText = `${currentUser.wallet.op} : ${currentUser.wallet.phone}`;
-            
-            let txHtml = '';
+
+            if(currentUser.wallet) {
+                document.getElementById('wallet-status').innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-check-circle mr-1"></i> ${currentUser.wallet.op} : ${currentUser.wallet.phone}</span>`;
+            }
+
+            const historyContainer = document.getElementById('transaction-history');
             if(currentUser.transactions && currentUser.transactions.length > 0) {
-                currentUser.transactions.slice().reverse().forEach(tx => {
-                    const isPositive = tx.amount > 0;
-                    txHtml += `
-                        <div class="bg-custom-card-light p-2.5 rounded-xl flex justify-between items-center text-xs">
-                            <span class="text-slate-300">${tx.type} <span class="text-[10px] text-slate-500">(${tx.date})</span></span>
-                            <span class="font-bold ${isPositive ? 'text-emerald-400' : 'text-rose-400'}">${isPositive ? '+' : ''}${tx.amount.toLocaleString()} F</span>
+                let hHtml = '';
+                currentUser.transactions.forEach(tx => {
+                    const isPos = tx.amount > 0;
+                    hHtml += `
+                        <div class="bg-custom-card-light p-2.5 rounded-xl border border-custom flex justify-between items-center text-xs">
+                            <div><span class="font-bold text-white">${tx.type}</span><span class="block text-[10px] text-slate-400">${tx.date}</span></div>
+                            <span class="font-extrabold ${isPos ? 'text-emerald-400' : 'text-rose-400'}">${isPos ? '+' : ''}${tx.amount.toLocaleString()} FCFA</span>
                         </div>
                     `;
                 });
-                document.getElementById('transaction-history').innerHTML = txHtml;
+                historyContainer.innerHTML = hHtml;
+            }
+
+            const activeContainer = document.getElementById('my-active-investments');
+            if(currentUser.activeInvestments && currentUser.activeInvestments.length > 0) {
+                let aHtml = '';
+                currentUser.activeInvestments.forEach(inv => {
+                    aHtml += `
+                        <div class="bg-custom-card-light p-3 rounded-xl border border-custom flex items-center space-x-3">
+                            <img src="${inv.img}" class="w-12 h-12 object-cover rounded-lg border border-custom shrink-0">
+                            <div class="flex-1 min-w-0">
+                                <span class="bg-primary-custom text-white font-bold text-[10px] px-2 py-0.5 rounded">VIP ${inv.id}</span>
+                                <p class="text-xs text-white font-semibold truncate mt-0.5">${inv.name}</p>
+                                <p class="text-xs text-emerald-400 font-bold">+${inv.daily.toLocaleString()} FCFA / jour</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                activeContainer.innerHTML = aHtml;
             }
         }
     </script>
