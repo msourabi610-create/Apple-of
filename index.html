@@ -9,7 +9,27 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#0b1329;color:#f1f5f9}
+/* Styles de secours : l'interface reste lisible même si le CDN Tailwind ne charge pas */
+.hidden{display:none!important}
+.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.block{display:block}.w-full{width:100%}.min-h-screen{min-height:100vh}
+.flex-col{flex-direction:column}.justify-between{justify-content:space-between}.items-center{align-items:center}.justify-center{justify-content:center}.text-center{text-align:center}
+body{font-family:'Plus Jakarta Sans',Arial,sans-serif;background:#0b1329;color:#f1f5f9;margin:0}
+#app-container{width:100%;max-width:448px;margin:0 auto;overflow-x:hidden}
+#page-login,#page-register{box-sizing:border-box;width:100%;min-height:100vh;padding:28px 20px;gap:28px}
+#page-login>div:first-child,#page-register>div:first-child{display:flex;flex-direction:column;gap:22px;padding-top:12px}
+#page-login .text-center,#page-register .text-center{ text-align:center }
+#page-login h1,#page-register h1{font-size:clamp(27px,7vw,36px);line-height:1.15;margin:10px 0;font-weight:800;letter-spacing:-.04em}
+#page-login p,#page-register p{line-height:1.5}
+#page-login .bg-custom-card,#page-register .bg-custom-card{background:#131c38;padding:20px;border:1px solid #29365f;border-radius:22px;box-sizing:border-box;width:100%;display:flex;flex-direction:column;gap:16px}
+#page-login label,#page-register label{display:block;font-size:13px;font-weight:600;margin-bottom:7px;color:#dbeafe}
+#page-login input,#page-register input,#page-login select,#page-register select{box-sizing:border-box;width:100%;min-width:0;max-width:100%;background:#1a254c;color:#f8fafc;border:1px solid #344575;border-radius:12px;padding:13px 12px;font-size:16px;outline:none}
+#page-login input:focus,#page-register input:focus,#page-login select:focus,#page-register select:focus{border-color:#38bdf8;box-shadow:0 0 0 3px #0284c733}
+#page-login .grid,#page-register .grid{display:grid;grid-template-columns:minmax(105px, .9fr) minmax(0,2fr);gap:8px}
+#page-login button,#page-register button{font-family:inherit;cursor:pointer;border:0;border-radius:12px;padding:13px 16px;font-size:15px;font-weight:700}
+#page-login .bg-primary-custom,#page-register .bg-primary-custom{background:#0284c7;color:white;width:100%;box-shadow:0 5px 14px #0284c733}
+#page-login>p,#page-register>p{margin:0;text-align:center;font-size:14px;color:#aab6d0}
+#page-login>p button,#page-register>p button{background:transparent;color:#38bdf8;padding:8px 4px}
+@media(max-width:360px){#page-login,#page-register{padding:22px 14px}#page-login .bg-custom-card,#page-register .bg-custom-card{padding:15px}#page-login .grid,#page-register .grid{grid-template-columns:105px minmax(0,1fr)}}
 .bg-custom-dark{background:#0b1329}.bg-custom-card{background:#131c38}.bg-custom-card-light{background:#1a254c}
 .border-custom{border-color:#223063}.bg-primary-custom{background:#0284c7}.bg-primary-custom:hover{background:#0369a1}
 @keyframes marquee{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
