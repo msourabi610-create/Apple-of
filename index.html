@@ -103,7 +103,7 @@ body{font-family:'Plus Jakarta Sans',Arial,sans-serif;background:#0b1329;color:#
    </div>
    <div class="rounded-2xl p-3 flex gap-2" style="background:#111d38;border:1px solid #293b61">
     <div class="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center text-sky-300" style="background:#0284c722"><i class="fa-solid fa-shield-halved"></i></div>
-    <div><p class="text-xs font-bold text-slate-200">Validation sécurisée</p><p class="text-[11px] leading-relaxed text-slate-400 mt-1">Ton solde est crédité uniquement après confirmation du paiement par l'administrateur. Les statuts se mettent à jour automatiquement.</p></div>
+    <div><p class="text-xs font-bold text-slate-200">Validation sécurisée</p><p class="text-[11px] leading-relaxed text-slate-400 mt-1">Ton solde est crédité uniquement après confirmation du paiement par l'administrateur. Les revenus sont contrôlés chaque jour à 00 h 05, heure de Côte d’Ivoire, lorsque le site est actif.</p></div>
    </div>
    <div class="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Filtrer les dépôts">
     <button type="button" onclick="filterDepositStatus('all',this)" class="deposit-filter shrink-0 rounded-xl px-4 py-2.5 text-xs font-bold" style="background:#0e7490;color:#ecfeff;border:1px solid #22d3ee66">Tout l'historique</button>
@@ -163,7 +163,7 @@ const vipPlans = [
 {id:9,name:"iPhone 16 Pro Max",price:1280000,daily:128000,total:2560000,days:20,img:"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=300&q=80",available:false},
 {id:10,name:"iPhone Ultra Flagship",price:2560000,daily:256000,total:2560000,days:10,img:"https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=300&q=80",available:false}
 ];
-let currentUser=null, selectedOp="WAVE", tempDepositAmount=0, currentInviter=null, unsubUser=null, unsubAdmin=[], communityUnsub=null, adminPanelActive=false;
+let currentUser=null, selectedOp="WAVE", tempDepositAmount=0, currentInviter=null, unsubUser=null, unsubAdmin=[], communityUnsub=null, adminPanelActive=false, dailyPayoutTimer=null;
 const $=id=>document.getElementById(id);
 const money=n=>Number(n||0).toLocaleString("fr-FR");
 const today=()=>new Date().toLocaleDateString("fr-FR");
@@ -182,13 +182,14 @@ function renderVipLists(){
 }
 window.switchPage=function(id){document.querySelectorAll(".page").forEach(e=>{e.classList.add("hidden");e.classList.remove("flex");});$(id).classList.remove("hidden");$(id).classList.add("flex");};
 window.switchTab=function(name){document.querySelectorAll(".tab-content").forEach(e=>e.classList.add("hidden"));$("tab-"+name).classList.remove("hidden");document.querySelectorAll(".nav-btn").forEach(b=>{b.classList.toggle("text-sky-400",b.dataset.tab===name);b.classList.toggle("text-slate-400",b.dataset.tab!==name);});};
+function isAbortError(e){return !!(e && (e.name==="AbortError" || /aborted a request/i.test(String(e.message||""))));}
 function reportRealtimeError(scope,e){
- // AbortError est généralement une requête annulée pendant un changement de page.
- // Ne pas transformer cette annulation normale en une série d'erreurs rouges.
- if(e && (e.name==="AbortError" || /aborted a request/i.test(String(e.message||"")))) return;
+ // Une requête annulée par le navigateur ne doit pas être affichée comme erreur critique.
+ if(isAbortError(e)) return;
  console.error("Firebase — "+scope+":",e);
 }
 function stopListeners(){
+ if(dailyPayoutTimer){clearTimeout(dailyPayoutTimer);dailyPayoutTimer=null;}
  if(unsubUser){unsubUser();unsubUser=null;}
  unsubAdmin.forEach(fn=>{try{fn();}catch(e){reportRealtimeError("arrêt écoute",e);}});unsubAdmin=[];
  adminPanelActive=false;
@@ -251,7 +252,7 @@ window.handleLogin=async function(){
   const submittedHash=await hashPassword(password);
   if(user.passwordHash!==submittedHash && user.password!==password){alert("Mot de passe incorrect. Vérifiez les majuscules, minuscules et espaces.");return;}
   currentUser=user;startRealtimeSync(phone);switchPage("page-dashboard");switchTab("accueil");
- }catch(e){console.error(e);alert("Connexion impossible : "+(e.message||"vérifiez Firebase et les règles Firestore."));}
+ }catch(e){if(isAbortError(e)){console.info("Connexion interrompue : réessayez si nécessaire.");return;}console.error(e);alert("Connexion impossible : "+(e.message||"vérifiez Firebase et les règles Firestore."));}
 };
 window.logout=function(){stopListeners();currentUser=null;switchPage("page-login");};
 window.filterDepositStatus=function(status,button){
@@ -261,6 +262,39 @@ window.filterDepositStatus=function(status,button){
  Object.entries(panels).forEach(([key,panel])=>{if(panel)panel.classList.toggle("hidden",status!=="all"&&status!==key);});
  const empty=$("deposit-empty-state");
  if(empty){const visibleIds=["my-deposits-pending","my-deposits-approved","my-deposits-rejected"];const hasRows=visibleIds.some(id=>{const el=$(id);return el&&el.querySelector("[data-deposit-row]");});empty.classList.toggle("hidden",hasRows||status!=="all");}
+};
+function utcDayNumber(value){const d=new Date(value);return Math.floor(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())/86400000);}
+// Les versements quotidiens sont exécutés côté serveur Firebase.
+// Le navigateur affiche les soldes synchronisés; il ne crédite plus lui-même les revenus.
+window.claimVipDailyReward=async function(investmentId){
+ if(!currentUser||!currentUser.phone){alert("Connecte-toi pour réclamer ton revenu.");return;}
+ const phone=String(currentUser.phone);
+ if(phone===ADMIN_PHONE){alert("Le compte administrateur ne peut pas réclamer de revenus VIP.");return;}
+ try{
+  const result=await runTransaction(db,async t=>{
+   const ref=doc(db,"users",phone),snap=await t.get(ref);
+   if(!snap.exists())throw new Error("Compte introuvable.");
+   const u=snap.data(),investments=Array.isArray(u.activeInvestments)?u.activeInvestments:[];
+   const idx=investments.findIndex(v=>String(v.id)===String(investmentId));
+   if(idx<0)throw new Error("Plan VIP introuvable.");
+   const inv=investments[idx],days=Number(inv.days)||0,daily=Number(inv.daily)||0;
+   const purchasedAt=Number(inv.purchasedAt)||0,paidDays=Math.max(0,Number(inv.paidDays)||0);
+   if(!purchasedAt||days<=0||daily<=0)throw new Error("Ce plan n'a pas de calendrier de versement valide.");
+   if(paidDays>=days)throw new Error("La durée de ce plan VIP est terminée.");
+   const dateParts=d=>{const a=new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Abidjan",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(d);const p=Object.fromEntries(a.filter(x=>x.type!=="literal").map(x=>[x.type,x.value]));return `${p.year}-${p.month}-${p.day}`;};
+   const today=dateParts(new Date());
+   if(today<=dateParts(new Date(purchasedAt)))throw new Error("Le premier revenu sera disponible à partir du lendemain de l'achat.");
+   if(inv.lastClaimDate===today)throw new Error("Tu as déjà réclamé le revenu de ce VIP aujourd'hui. Reviens demain.");
+   const balance=Number(u.withdrawBalance??0),amount=Math.round(daily);
+   if(!Number.isSafeInteger(amount)||amount<=0||!Number.isSafeInteger(balance)||balance<0||!Number.isSafeInteger(balance+amount))throw new Error("Montant ou solde invalide.");
+   const updated=[...investments];updated[idx]={...inv,paidDays:paidDays+1,lastClaimDate:today,lastPayoutDate:today};
+   const transactions=Array.isArray(u.transactions)?u.transactions.slice():[];
+   transactions.push({type:`Revenu VIP ${inv.id} réclamé`,amount,date:today,source:"dailyVipClaim"});
+   t.update(ref,{activeInvestments:updated,withdrawBalance:balance+amount,transactions,updatedAt:serverTimestamp()});
+   return {amount};
+  });
+  alert(`Succès : ${money(result.amount)} FCFA ont été ajoutés à ton solde de retrait pour aujourd'hui.`);
+ }catch(e){console.error("Réclamation revenu VIP",e);alert(e.message||"Impossible de réclamer le revenu pour le moment.");}
 };
 function startRealtimeSync(phone){
  stopListeners();
@@ -347,7 +381,7 @@ window.adminValidateReferralReward=async function(id){
 window.investVip=async function(id){
  if(!currentUser){alert("Connectez-vous d'abord.");return;}
  const vip=vipPlans.find(v=>v.id===id);if(!vip)return;if(!vip.available){alert("Ce niveau VIP sera bientôt disponible.");return;}
- try{await runTransaction(db,async t=>{const ur=doc(db,"users",currentUser.phone),us=await t.get(ur);if(!us.exists())throw Error("Compte introuvable.");const u=us.data(),bal=Number(u.investBalance??0);if(bal<vip.price)throw Error("Solde d'investissement insuffisant. Effectuez un dépôt.");const investments=Array.isArray(u.activeInvestments)?u.activeInvestments:[];t.update(ur,{investBalance:bal-vip.price,activeInvestments:[...investments,{...vip,purchasedAt:Date.now()}],transactions:appendTx(u,{type:`Investissement ${vip.name}`,amount:-vip.price})});if(!u.hasInvested&&u.invitedBy){const rid="ref_"+u.invitedBy.replace(/\s+/g,"_")+"_"+u.phone.replace(/\s+/g,"_");t.set(doc(db,"referrals",rid),{parrain:u.invitedBy,filleul:u.phone,invested:false,pendingReward:true,date:today()},{merge:true});t.update(ur,{hasInvested:true});}else if(!u.hasInvested)t.update(ur,{hasInvested:true});});alert("Investissement enregistré. Les éventuels revenus doivent être calculés et validés selon des conditions réelles.");switchTab("profil");}catch(e){alert(e.message||"Investissement impossible.");}
+ try{await runTransaction(db,async t=>{const ur=doc(db,"users",currentUser.phone),us=await t.get(ur);if(!us.exists())throw Error("Compte introuvable.");const u=us.data(),bal=Number(u.investBalance??0);if(bal<vip.price)throw Error("Solde d'investissement insuffisant. Effectuez un dépôt.");const investments=Array.isArray(u.activeInvestments)?u.activeInvestments:[];t.update(ur,{investBalance:bal-vip.price,activeInvestments:[...investments,{...vip,purchasedAt:Date.now(),paidDays:0}],transactions:appendTx(u,{type:`Investissement ${vip.name}`,amount:-vip.price})});if(!u.hasInvested&&u.invitedBy){const rid="ref_"+u.invitedBy.replace(/\s+/g,"_")+"_"+u.phone.replace(/\s+/g,"_");t.set(doc(db,"referrals",rid),{parrain:u.invitedBy,filleul:u.phone,invested:false,pendingReward:true,date:today()},{merge:true});t.update(ur,{hasInvested:true});}else if(!u.hasInvested)t.update(ur,{hasInvested:true});});alert("Investissement enregistré. Les éventuels revenus doivent être calculés et validés selon des conditions réelles.");switchTab("profil");}catch(e){alert(e.message||"Investissement impossible.");}
 };
 function listenCommunityWithdrawals(){if(communityUnsub)return;communityUnsub=onSnapshot(collection(db,"community_withdrawals"),s=>{const rows=s.docs.map(d=>d.data()).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)).slice(0,15);$("community-withdrawals-ticker").innerHTML=rows.map(w=>`<div class="flex justify-between gap-2 py-1 border-b border-custom/50"><span>${String(w.phone||"").replace(/(\d{2})\d+(\d{2})/,"$1****$2")} (${w.op||"WAVE"})</span><b class="text-emerald-400">${money(w.amount)} FCFA</b></div>`).join("")||"Aucun retrait confirmé pour le moment.";},e=>reportRealtimeError("retraits récents communauté",e));}
 window.openDepositModal=()=>{[1,2,3].forEach(n=>$("dep-step-"+n).classList.toggle("hidden",n!==1));$("modal-deposit").classList.remove("hidden");$("dep-proof").value="";$("dep-proof-preview").classList.add("hidden");window.depositProofData=null;selectedOp="WAVE";window.updateDepProgress(1);};
@@ -370,7 +404,11 @@ function updateDashboardUI(){
  $("user-invest-balance").textContent=money(currentUser.investBalance)+" FCFA";$("user-withdraw-balance").textContent=money(currentUser.withdrawBalance)+" FCFA";
  $("wallet-status").textContent=currentUser.wallet?`${currentUser.wallet.op} : ${currentUser.wallet.phone}`:"Aucun portefeuille enregistré.";
  $("transaction-history").innerHTML=(currentUser.transactions||[]).slice().reverse().map(t=>`<div class="bg-custom-card-light p-2 rounded-xl border border-custom flex justify-between gap-2"><span>${t.type}<small class="block text-slate-400">${t.date||""}</small></span><b class="${Number(t.amount)>=0?"text-emerald-400":"text-rose-400"}">${Number(t.amount)>0?"+":""}${money(t.amount)} FCFA</b></div>`).join("")||"Aucune transaction.";
- $("my-active-investments").innerHTML=(currentUser.activeInvestments||[]).map(v=>`<div class="bg-custom-card-light p-3 rounded-xl border border-custom flex items-center gap-3"><img src="${v.img}" class="w-12 h-12 rounded-lg object-cover"><div><b>VIP ${v.id} — ${v.name}</b><p class="text-emerald-400 text-xs">${money(v.daily)} FCFA/jour annoncés</p></div></div>`).join("")||"Aucun investissement actif.";
+ const investments=(currentUser.activeInvestments||[]);
+ const totalDaily=investments.reduce((sum,v)=>sum+(Number(v.daily)||0),0);
+ const totalEarned=investments.reduce((sum,v)=>sum+(Number(v.daily)||0)*(Number(v.paidDays)||0),0);
+ const totalLeft=investments.reduce((sum,v)=>sum+Math.max(0,(Number(v.days)||0)-(Number(v.paidDays)||0)),0);
+ $("my-active-investments").innerHTML=`<section class="rounded-[26px] p-4 mb-3 relative overflow-hidden" style="background:radial-gradient(circle at 100% 0%,#22d3ee26,transparent 40%),linear-gradient(135deg,#16284d,#0c142a);border:1px solid #38bdf833;box-shadow:0 14px 35px #00000020"><div class="flex items-center justify-between gap-2"><div><div class="text-[10px] uppercase tracking-[.15em] font-bold text-cyan-200">Centre de rendement</div><div class="text-2xl font-extrabold mt-2">${money(totalDaily)} <span class="text-xs text-slate-300">FCFA / jour</span></div><p class="text-[10px] text-slate-400 mt-1">Montant quotidien configuré pour tes VIP actifs</p></div><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl text-emerald-300" style="background:#10b98120;border:1px solid #34d39933"><i class="fa-solid fa-chart-line"></i></div></div><div class="grid grid-cols-2 gap-2 mt-4"><div class="rounded-xl p-3" style="background:#ffffff08"><div class="text-[10px] text-slate-400">Revenus crédités</div><b class="text-emerald-300 text-sm">${money(totalEarned)} FCFA</b></div><div class="rounded-xl p-3" style="background:#ffffff08"><div class="text-[10px] text-slate-400">Jours restants cumulés</div><b class="text-sky-200 text-sm">${totalLeft} jours</b></div></div></section>`+ (investments.map((v,i)=>{const days=Number(v.days)||0,paid=Math.min(days,Number(v.paidDays)||0),remaining=Math.max(0,days-paid),pct=days?Math.min(100,paid/days*100):0;return `<article class="rounded-2xl p-3 mb-3" style="background:linear-gradient(145deg,#172342,#101a32);border:1px solid #2c4169"><div class="flex items-center gap-3"><img src="${v.img||''}" alt="" class="w-14 h-14 rounded-xl object-cover" style="background:#0b1329"><div class="min-w-0 flex-1"><div class="flex items-center gap-2"><span class="text-[9px] font-extrabold rounded-md px-2 py-1 text-cyan-200" style="background:#0891b222">VIP ${v.id}</span><span class="text-[9px] text-slate-500">${remaining>0?'ACTIF':'TERMINÉ'}</span></div><b class="block text-sm mt-1 truncate">${v.name}</b><p class="text-[11px] text-emerald-300 mt-1">+${money(Number(v.daily)||0)} FCFA / jour</p></div></div><div class="grid grid-cols-3 gap-2 mt-4"><div><p class="text-[9px] text-slate-500">Prix d'achat</p><b class="text-xs">${money(Number(v.price)||0)}</b></div><div><p class="text-[9px] text-slate-500">Crédités</p><b class="text-xs text-emerald-300">${paid}/${days} jours</b></div><div><p class="text-[9px] text-slate-500">Reste</p><b class="text-xs">${remaining} jours</b></div></div><div class="h-1.5 rounded-full mt-3 overflow-hidden" style="background:#ffffff12"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#06b6d4,#34d399)"></div></div><div class="flex justify-between gap-2 mt-3 text-[10px]"><span class="text-slate-400">Total déjà crédité</span><b class="text-emerald-300">${money((Number(v.daily)||0)*paid)} FCFA</b></div><div class="mt-2 text-[10px] ${remaining?'text-cyan-200':'text-slate-500'}">${remaining?'Revenu disponible selon le calendrier de ce plan VIP.':'La durée de ce plan est terminée.'}</div>${remaining>0&&(()=>{const fmt=d=>{const a=new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Abidjan",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(d);const p=Object.fromEntries(a.filter(x=>x.type!=="literal").map(x=>[x.type,x.value]));return `${p.year}-${p.month}-${p.day}`;};const today=fmt(new Date());const purchaseDay=Number(v.purchasedAt)?fmt(new Date(Number(v.purchasedAt))):"";return purchaseDay&&today>purchaseDay&&v.lastClaimDate!==today;})()?`<button type="button" onclick="claimVipDailyReward('${String(v.id)}')" class="w-full mt-3 rounded-xl px-4 py-3 text-xs font-extrabold flex items-center justify-center gap-2" style="background:linear-gradient(90deg,#0891b2,#0f766e);color:#ecfeff;border:1px solid #67e8f955"><i class="fa-solid fa-hand-holding-dollar"></i> Réclamer ${money(Number(v.daily)||0)} FCFA</button><p class="text-[9px] text-slate-500 mt-2 text-center">Disponible à partir du lendemain de l'achat · une réclamation par jour</p>`:remaining>0?`<button disabled class="w-full mt-3 rounded-xl px-4 py-3 text-xs font-bold" style="background:#ffffff0a;color:#64748b;border:1px solid #334155"><i class="fa-solid fa-lock mr-1"></i> ${(()=>{const fmt=d=>{const a=new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Abidjan",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(d);const p=Object.fromEntries(a.filter(x=>x.type!=="literal").map(x=>[x.type,x.value]));return `${p.year}-${p.month}-${p.day}`;};const today=fmt(new Date());const purchaseDay=Number(v.purchasedAt)?fmt(new Date(Number(v.purchasedAt))):"";return purchaseDay&&today<=purchaseDay?"Disponible demain":"Reviens demain";})()}</button>`:`<button disabled class="w-full mt-3 rounded-xl px-4 py-3 text-xs font-bold" style="background:#ffffff0a;color:#64748b;border:1px solid #334155">Plan terminé</button>`}</article>`}).join("") || '<div class="rounded-2xl p-6 text-center" style="background:#111d38;border:1px dashed #334155"><div class="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center text-xl text-sky-300" style="background:#0284c71a"><i class="fa-solid fa-chart-line"></i></div><b class="block mt-3">Aucun investissement actif</b><p class="text-xs text-slate-400 mt-1">Choisis un plan VIP dans « Investir » pour voir son suivi quotidien ici.</p></div>');
 }
 </script>
 </body>
