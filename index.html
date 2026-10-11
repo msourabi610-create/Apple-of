@@ -75,8 +75,7 @@ body{font-family:'Plus Jakarta Sans',Arial,sans-serif;background:#0b1329;color:#
 <script>
 window.showWelcomeModal=function(){const m=document.getElementById('welcome-modal');if(m)m.classList.remove('hidden');};
 window.closeWelcomeModal=function(){const m=document.getElementById('welcome-modal');if(m)m.classList.add('hidden');};
-// Afficher aussi la fenêtre à chaque ouverture ou actualisation de la page, même si le compte existe déjà.
-document.addEventListener('DOMContentLoaded',function(){window.showWelcomeModal();});
+// La fenêtre de bienvenue s’affiche uniquement après une inscription ou connexion réussie.
 </script>
 
 <div id="app-container" class="w-full max-w-md bg-custom-dark min-h-screen relative shadow-2xl flex flex-col">
@@ -284,7 +283,7 @@ window.handleLogin=async function(){
    await setDoc(ref,admin,{merge:true});
    currentUser=admin;
    startRealtimeSync(adminPhone);
-   switchPage("page-dashboard");switchTab("accueil");
+   switchPage("page-dashboard");switchTab("accueil");showWelcomeModal();
    alert("Connexion administrateur réussie.");
    return;
   }
@@ -294,7 +293,7 @@ window.handleLogin=async function(){
   const user=snap.data();
   const submittedHash=await hashPassword(password);
   if(user.passwordHash!==submittedHash && user.password!==password){alert("Mot de passe incorrect. Vérifiez les majuscules, minuscules et espaces.");return;}
-  currentUser=user;startRealtimeSync(phone);switchPage("page-dashboard");switchTab("accueil");
+  currentUser=user;startRealtimeSync(phone);switchPage("page-dashboard");switchTab("accueil");showWelcomeModal();
  }catch(e){if(isAbortError(e)){console.info("Connexion interrompue : réessayez si nécessaire.");return;}console.error(e);alert("Connexion impossible : "+(e.message||"vérifiez Firebase et les règles Firestore."));}
 };
 window.logout=function(){stopListeners();currentUser=null;switchPage("page-login");};
