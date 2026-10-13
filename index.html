@@ -116,6 +116,21 @@ window.closeWelcomeModal=function(){const m=document.getElementById('welcome-mod
    <div id="admin-panel" class="hidden bg-custom-card p-4 rounded-3xl border border-sky-500/50 space-y-4">
     <h4 class="font-extrabold text-sm text-sky-400 border-b border-custom pb-2"><i class="fa-solid fa-shield-halved mr-2"></i>Tableau de bord administrateur</h4>
     <div><h5 class="text-xs font-bold uppercase mb-2">Utilisateurs (<span id="admin-users-count">0</span>)</h5><div id="admin-users-list" class="space-y-2 max-h-40 overflow-y-auto"></div></div>
+    <div class="border-t border-custom pt-3 space-y-3">
+     <h5 class="text-xs font-bold uppercase text-sky-300">Suivi des investissements et invitations</h5>
+     <div class="grid grid-cols-3 gap-2">
+      <div class="bg-custom-card-light rounded-xl p-3"><span class="text-[10px] text-slate-400">Ont investi</span><b id="admin-invested-count" class="block text-lg text-emerald-300">0</b></div>
+      <div class="bg-custom-card-light rounded-xl p-3"><span class="text-[10px] text-slate-400">Pas investi</span><b id="admin-not-invested-count" class="block text-lg text-amber-300">0</b></div>
+      <div class="bg-custom-card-light rounded-xl p-3"><span class="text-[10px] text-slate-400">Ont invité</span><b id="admin-inviters-count" class="block text-lg text-sky-300">0</b></div>
+     </div>
+     <div class="flex gap-2 flex-wrap">
+      <button type="button" onclick="showAdminPeople('invested')" class="bg-emerald-700 px-3 py-2 rounded-lg text-xs font-bold">Investisseurs</button>
+      <button type="button" onclick="showAdminPeople('not-invested')" class="bg-amber-700 px-3 py-2 rounded-lg text-xs font-bold">Non-investisseurs</button>
+      <button type="button" onclick="showAdminPeople('inviters')" class="bg-sky-700 px-3 py-2 rounded-lg text-xs font-bold">Parrains actifs</button>
+     </div>
+     <p id="admin-people-description" class="text-[10px] text-slate-400">Choisissez une liste pour consulter les comptes.</p>
+     <div id="admin-people-list" class="space-y-2 max-h-80 overflow-y-auto"></div>
+    </div>
     <div class="border-t border-custom pt-3"><h5 class="text-xs font-bold uppercase mb-2">Dépôts en attente (<span id="admin-deposits-count">0</span>)</h5><div id="admin-deposits-list" class="space-y-2 max-h-48 overflow-y-auto"></div></div>
     <div class="border-t border-custom pt-3"><h5 class="text-xs font-bold uppercase mb-2">Retraits en attente (<span id="admin-withdrawals-count">0</span>)</h5><div id="admin-withdrawals-list" class="space-y-2 max-h-48 overflow-y-auto"></div></div>
     <div class="border-t border-custom pt-3"><h5 class="text-xs font-bold uppercase mb-2">Primes de parrainage (<span id="admin-referrals-count">0</span>)</h5><div id="admin-referrals-list" class="space-y-2 max-h-40 overflow-y-auto"></div></div>
@@ -198,8 +213,8 @@ const vipPlans = [
 {id:1,name:"VIP Essentiel",price:3000,daily:300,total:18000,days:60,img:"https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?auto=format&fit=crop&w=300&q=80",available:true},
 {id:2,name:"VIP Découverte",price:5000,daily:600,total:36000,days:60,img:"https://images.unsplash.com/photo-1605236453806-6ff36851218e?auto=format&fit=crop&w=300&q=80",available:true},
 {id:3,name:"VIP Plus",price:10000,daily:1300,total:78000,days:60,img:"https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=300&q=80",available:true},
-{id:4,name:"VIP Premium",price:20000,daily:2500,total:150000,days:60,img:"https://images.unsplash.com/photo-1663499482523-1c0c1b48b7d5?auto=format&fit=crop&w=300&q=80",available:true},
-{id:5,name:"VIP Gold",price:50000,daily:4000,total:240000,days:60,img:"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=300&q=80",available:true},
+{id:4,name:"VIP Premium",price:20000,daily:2500,total:150000,days:60,img:"https://images.unsplash.com/photo-1663499482523-1c0c1b48b7d5?auto=format&fit=crop&w=300&q=80",available:false},
+{id:5,name:"VIP Gold",price:50000,daily:4000,total:240000,days:60,img:"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=300&q=80",available:false},
 {id:6,name:"VIP Platinum",price:100000,daily:12000,total:720000,days:60,img:"https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=300&q=80",available:false},
 {id:7,name:"VIP Prestige",price:200000,daily:25000,total:1500000,days:60,img:"https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=300&q=80",available:false},
 {id:8,name:"VIP Excellence",price:400000,daily:50000,total:3000000,days:60,img:"https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=300&q=80",available:false}
@@ -377,11 +392,30 @@ function startRealtimeSync(phone){
  else $("admin-panel").classList.add("hidden");
  $("ref-link").textContent=location.origin+location.pathname+"?ref="+encodeURIComponent(phone);
 }
+let adminPeopleCache={invested:[], "not-invested":[], inviters:[]};
+window.showAdminPeople=function(kind){
+ const descriptions={invested:"Comptes avec au moins un investissement enregistré.", "not-invested":"Comptes sans investissement enregistré.",inviters:"Comptes ayant invité au moins une personne."};
+ const rows=adminPeopleCache[kind]||[];
+ $("admin-people-description").textContent=(descriptions[kind]||"")+` Total : ${rows.length}`;
+ $("admin-people-list").innerHTML=rows.map(u=>`<article class="bg-custom-card-light p-3 rounded-xl border border-custom text-xs space-y-1"><b>${u.phone||"Compte sans numéro"}</b><p class="text-slate-400">Inscrit via : ${u.invitedBy||"Aucun parrain"}</p>${kind==="invested"?`<p class="text-emerald-300">Plans actifs/enregistrés : ${u.investmentCount} · Montant investi enregistré : ${money(u.investedAmount)} FCFA</p>`:""}${kind==="inviters"?`<p class="text-sky-300">Filleuls enregistrés : ${u.invitedCount}</p><p class="text-slate-400">${u.invitedPhones.join(" · ")}</p>`:""}</article>`).join("")||'<p class="text-slate-400 text-xs">Aucun compte dans cette catégorie.</p>';
+};
 function initAdminPanel(){
  if(adminPanelActive)return; adminPanelActive=true;
  const usersUnsub=onSnapshot(collection(db,"users"),s=>{
   $("admin-users-count").textContent=s.size;
-  $("admin-users-list").innerHTML=s.docs.map(d=>{const u=d.data(), total=Number(u.investBalance??0)+Number(u.withdrawBalance??0);return `<div class="bg-custom-card-light p-2 rounded-xl border border-custom text-xs flex justify-between gap-2"><span>${u.phone||d.id}<small class="block text-slate-400">Invité par : ${u.invitedBy||"Aucun"}</small></span><b class="text-emerald-400">${money(total)} FCFA</b></div>`;}).join("")||"Aucun utilisateur";
+  const users=s.docs.map(d=>({...d.data(),phone:d.data().phone||d.id}));
+  $("admin-users-list").innerHTML=users.map(u=>{const total=Number(u.investBalance??0)+Number(u.withdrawBalance??0);return `<div class="bg-custom-card-light p-2 rounded-xl border border-custom text-xs flex justify-between gap-2"><span>${u.phone}<small class="block text-slate-400">Invité par : ${u.invitedBy||"Aucun"}</small></span><b class="text-emerald-400">${money(total)} FCFA</b></div>`;}).join("")||"Aucun utilisateur";
+  const invested=users.filter(u=>Array.isArray(u.activeInvestments)&&u.activeInvestments.length>0 || u.hasInvested===true);
+  const notInvested=users.filter(u=>!(Array.isArray(u.activeInvestments)&&u.activeInvestments.length>0 || u.hasInvested===true));
+  const inviters=users.filter(u=>users.some(v=>v.invitedBy===u.phone));
+  const amountFor=u=>(Array.isArray(u.activeInvestments)?u.activeInvestments:[]).reduce((sum,v)=>sum+(Number(v.price)||0),0);
+  const mapUser=u=>({...u,investmentCount:(Array.isArray(u.activeInvestments)?u.activeInvestments.length:0),investedAmount:amountFor(u),invitedPhones:users.filter(v=>v.invitedBy===u.phone).map(v=>v.phone),invitedCount:users.filter(v=>v.invitedBy===u.phone).length});
+  adminPeopleCache={invested:invested.map(mapUser),"not-invested":notInvested.map(mapUser),inviters:inviters.map(mapUser)};
+  $("admin-invested-count").textContent=invested.length;
+  $("admin-not-invested-count").textContent=notInvested.length;
+  $("admin-inviters-count").textContent=inviters.length;
+  if(!$("admin-people-list").dataset.initialized){$("admin-people-list").dataset.initialized="1";window.showAdminPeople("invested");}
+  else {const label=$("admin-people-description").textContent;const kind=label.startsWith("Comptes sans")?"not-invested":label.startsWith("Comptes ayant")?"inviters":"invested";window.showAdminPeople(kind);}
  },e=>reportRealtimeError("liste administrateur des clients",e));
  const depositsUnsub=onSnapshot(collection(db,"deposits"),s=>{
   const rows=s.docs.filter(d=>d.data().status==="pending");$("admin-deposits-count").textContent=rows.length;
